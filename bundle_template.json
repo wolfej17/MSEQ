@@ -11,7 +11,7 @@
     "tag": "MSEQ",
 
     // Description displayed in the Wwise Launcher for this bundle
-    "description": "Parametric Mid/Side Equalizer",
+    "description": "Mid/Side Mastering Equalizer",
 
     // Vendor name displayed in the Wwise Launcher for this bundle
     "vendor": "Jacob Wolfe",

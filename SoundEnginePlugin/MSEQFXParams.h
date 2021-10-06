@@ -32,12 +32,14 @@ the specific language governing permissions and limitations under the License.
 
 // Add parameters IDs here, those IDs should map to the AudioEnginePropertyID
 // attributes in the xml property definition.
-static const AkPluginParamID PARAM_PLACEHOLDER_ID = 0;
-static const AkUInt32 NUM_PARAMS = 1;
+static const AkPluginParamID SIDEHIGHSHELFGAIN = 0;
+static const AkPluginParamID SIDEHIGHSHELFFREQ = 1;
+static const AkUInt32 NUM_PARAMS = 2;
 
 struct MSEQRTPCParams
 {
-    AkReal32 fPlaceholder;
+    AkReal32 SideHighShelfGain;
+    AkReal32 SideHighShelfFreq;
 };
 
 struct MSEQNonRTPCParams

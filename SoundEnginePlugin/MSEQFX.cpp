@@ -94,6 +94,21 @@ void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
         while (uFramesProcessed < io_pBuffer->uValidFrames)
         {
             // Execute DSP in-place here
+
+
+
+
+
+
+            // Gain is working - begin development on biquad filtering and M/S encoding/decoding.
+
+
+
+
+
+
+
+            pBuf[uFramesProcessed] *= AK_DBTOLIN(m_pParams->RTPC.SideHighShelfGain);
             ++uFramesProcessed;
         }
     }

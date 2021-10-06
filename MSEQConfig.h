@@ -34,7 +34,7 @@ Copyright (c) 2021 Audiokinetic Inc.
 namespace MSEQConfig
 {
     static const unsigned short CompanyID = 64;
-    static const unsigned short PluginID = 26570;
+    static const unsigned short PluginID = 14662;
 }
 
 #endif // MSEQConfig_H

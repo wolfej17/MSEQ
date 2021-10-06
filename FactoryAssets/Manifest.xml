@@ -30,6 +30,6 @@ for more information on factory assets
 -->
 <Manifest Name="Mid/Side Equalizer" Type="Presets">
   <Dependencies>
-    <Plugin PluginName="Mid/Side Equalizer" CompanyID="64" PluginID="26570" PluginType="3"/>
+    <Plugin PluginName="Mid/Side Equalizer" CompanyID="64" PluginID="14662" PluginType="3"/>
   </Dependencies>
 </Manifest>

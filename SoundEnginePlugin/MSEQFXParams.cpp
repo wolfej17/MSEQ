@@ -53,7 +53,8 @@ AKRESULT MSEQFXParams::Init(AK::IAkPluginMemAlloc* in_pAllocator, const void* in
     if (in_ulBlockSize == 0)
     {
         // Initialize default parameters here
-        RTPC.fPlaceholder = 0.0f;
+        RTPC.SideHighShelfGain = 0.0f;
+        RTPC.SideHighShelfFreq = 8000.0f;
         m_paramChangeHandler.SetAllParamChanges();
         return AK_Success;
     }
@@ -73,7 +74,8 @@ AKRESULT MSEQFXParams::SetParamsBlock(const void* in_pParamsBlock, AkUInt32 in_u
     AkUInt8* pParamsBlock = (AkUInt8*)in_pParamsBlock;
 
     // Read bank data here
-    RTPC.fPlaceholder = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
+    RTPC.SideHighShelfGain = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
+    RTPC.SideHighShelfFreq = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
     CHECKBANKDATASIZE(in_ulBlockSize, eResult);
     m_paramChangeHandler.SetAllParamChanges();
 
@@ -87,9 +89,13 @@ AKRESULT MSEQFXParams::SetParam(AkPluginParamID in_paramID, const void* in_pValu
     // Handle parameter change here
     switch (in_paramID)
     {
-    case PARAM_PLACEHOLDER_ID:
-        RTPC.fPlaceholder = *((AkReal32*)in_pValue);
-        m_paramChangeHandler.SetParamChange(PARAM_PLACEHOLDER_ID);
+    case SIDEHIGHSHELFGAIN:
+        RTPC.SideHighShelfGain = *((AkReal32*)in_pValue);
+        m_paramChangeHandler.SetParamChange(SIDEHIGHSHELFGAIN);
+        break;
+    case SIDEHIGHSHELFFREQ:
+        RTPC.SideHighShelfFreq = *((AkReal32*)in_pValue);
+        m_paramChangeHandler.SetParamChange(SIDEHIGHSHELFFREQ);
         break;
     default:
         eResult = AK_InvalidParameter;

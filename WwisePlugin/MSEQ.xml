@@ -29,7 +29,7 @@ See https://www.audiokinetic.com/library/edge/?source=SDK&id=plugin__xml.html
 for the documentation about the plugin xml format
 -->
 <PluginModule>
-  <EffectPlugin Name="Mid/Side Equalizer" CompanyID="64" PluginID="26570">
+  <EffectPlugin Name="Mid/Side Equalizer" CompanyID="64" PluginID="14662">
     <PluginInfo>
       <PlatformSupport>
         <Platform Name="Any">
@@ -41,19 +41,32 @@ for the documentation about the plugin xml format
     </PluginInfo>
     <Properties>
       <!-- Add your property definitions here -->
-      <Property Name="Placeholder" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Placeholder">
-        <UserInterface Step="0.1" Fine="0.001" Decimals="3" UIMax="10" />
-        <DefaultValue>0.0</DefaultValue>
-        <AudioEnginePropertyID>0</AudioEnginePropertyID>
-        <Restrictions>
-          <ValueRestriction>
-            <Range Type="Real32">
-              <Min>0.001</Min>
-              <Max>1000</Max>
-            </Range>
-          </ValueRestriction>
-        </Restrictions>
+      <Property Name="SideHighShelfGain" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Decibels" DisplayName="Side - High Shelf Gain">
+		  <UserInterface Step="0.5" Fine="0.1" Decimals="1" />
+		  <DefaultValue>0</DefaultValue>
+		  <AudioEnginePropertyID>0</AudioEnginePropertyID>
+		  <Restrictions>
+			  <ValueRestriction>
+				  <Range Type="Real32">
+					  <Min>-24</Min>
+					  <Max>24</Max>
+				  </Range>
+			  </ValueRestriction>
+		  </Restrictions>
       </Property>
+	    <Property Name="SideHighShelfFreq" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Frequency" DisplayName="Side - High Shelf Freq">
+		    <UserInterface Step="50" Fine="1" Decimals="1" />
+		    <DefaultValue>8000</DefaultValue>
+		    <AudioEnginePropertyID>1</AudioEnginePropertyID>
+		    <Restrictions>
+			    <ValueRestriction>
+				    <Range Type="Real32">
+					    <Min>24</Min>
+					    <Max>15000</Max>
+				    </Range>
+			    </ValueRestriction>
+		    </Restrictions>
+	    </Property>
     </Properties>
   </EffectPlugin>
 </PluginModule>
