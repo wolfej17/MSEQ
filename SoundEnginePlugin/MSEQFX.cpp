@@ -26,6 +26,8 @@ the specific language governing permissions and limitations under the License.
 
 #include "MSEQFX.h"
 #include "../MSEQConfig.h"
+#include "DspFilters/Common.h"
+#include "DspFilters//Filter.h"
 
 #include <AK/AkWwiseSDKVersion.h>
 
@@ -58,6 +60,13 @@ AKRESULT MSEQFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginC
     m_pAllocator = in_pAllocator;
     m_pContext = in_pContext;
 
+    sampleRate = in_rFormat.uSampleRate;
+
+    freq2 = computeUpperCutoffFrequency(m_pParams->RTPC.filter1Q, m_pParams->RTPC.filter1Freq);
+    freq1 = computeLowerCutoffFrequency(m_pParams->RTPC.filter1Q, m_pParams->RTPC.filter1Freq);
+
+    filter1Gain = AK_DBTOLIN(m_pParams->RTPC.filter1Gain);
+
     return AK_Success;
 }
 
@@ -83,35 +92,87 @@ AKRESULT MSEQFX::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
 
 void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
 {
-    const AkUInt32 uNumChannels = io_pBuffer->NumChannels();
+    const int uNumChannels = io_pBuffer->NumChannels();
+    const int uBufferLength = io_pBuffer->uValidFrames;
 
-    AkUInt16 uFramesProcessed;
-    for (AkUInt32 i = 0; i < uNumChannels; ++i)
+    filter1Gain = AK_DBTOLIN(m_pParams->RTPC.filter1Gain);
+
+    highShelf.setup(filterOrder, sampleRate, m_pParams->RTPC.filter1Freq, filter1Gain);
+
+
+    // High shelf is working! Now, all you will need to do is get the other bands working, and make each parametric.
+
+
+    float* channels[1];
+
+    // Don't process side if mono
+    if (uNumChannels == 1)
     {
-        AkReal32* AK_RESTRICT pBuf = (AkReal32* AK_RESTRICT)io_pBuffer->GetChannel(i);
-
-        uFramesProcessed = 0;
-        while (uFramesProcessed < io_pBuffer->uValidFrames)
-        {
-            // Execute DSP in-place here
-
-
-
-
-
-
-            // Gain is working - begin development on biquad filtering and M/S encoding/decoding.
-
-
-
-
-
-
-
-            pBuf[uFramesProcessed] *= AK_DBTOLIN(m_pParams->RTPC.SideHighShelfGain);
-            ++uFramesProcessed;
-        }
+        channels[0] = io_pBuffer->GetChannel(0);
+        highShelf.process(uBufferLength, channels);
     }
+    // Process side
+    else
+    {
+        constructMidSideBuffers(io_pBuffer, uBufferLength);
+        if (m_pParams->RTPC.filter1MidSide == true)
+        {
+            channels[0] = sideBuffer;
+        }
+        else
+        {
+            channels[0] = midBuffer;
+        }
+        highShelf.process(uBufferLength, channels);
+
+        deconstructMidSideBuffers(io_pBuffer, uBufferLength);
+    }   
+}
+
+void MSEQFX::constructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength)
+{
+    float* channel1 = inBuf->GetChannel(0);
+    float* channel2 = inBuf->GetChannel(1);
+
+    sideBuffer = new float[bufferLength];
+    midBuffer = new float[bufferLength];
+
+    for (int i = 0; i < bufferLength; ++i)
+    {
+        float midSample = (channel1[i] + channel2[i]) / sqrt(2);
+        float sideSample = (channel1[i] - channel2[i]) / sqrt(2);
+
+        midBuffer[i] = midSample;
+        sideBuffer[i] = sideSample;
+    }
+}
+
+void MSEQFX::deconstructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength)
+{
+    float* channel1 = inBuf->GetChannel(0);
+    float* channel2 = inBuf->GetChannel(1);
+
+    for (int i = 0; i < bufferLength; ++i)
+    {
+        float chanOneSample = (midBuffer[i] + sideBuffer[i]) / sqrt(2);
+        float chanTwoSample = (midBuffer[i] - sideBuffer[i]) / sqrt(2);
+
+        channel1[i] = chanOneSample;
+        channel2[i] = chanTwoSample;
+    }
+
+    delete[] midBuffer;
+    delete[] sideBuffer;
+}
+
+double MSEQFX::computeUpperCutoffFrequency(double q, double f0)
+{
+    return f0 * (sqrt(1 + (1 / (4 * pow(q, 2)))) + (1 / (2 * q)));
+}
+
+double MSEQFX::computeLowerCutoffFrequency(double q, double f0)
+{
+    return f0 * (sqrt(1 + (1 / (4 * pow(q, 2)))) - (1 / (2 * q)));
 }
 
 AKRESULT MSEQFX::TimeSkip(AkUInt32 in_uFrames)

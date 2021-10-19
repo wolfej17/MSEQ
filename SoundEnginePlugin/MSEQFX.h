@@ -28,6 +28,8 @@ the specific language governing permissions and limitations under the License.
 #define MSEQFX_H
 
 #include "MSEQFXParams.h"
+#include "DspFilters/Dsp.h"
+
 
 /// See https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine__plugins__effects.html
 /// for the documentation about effect plug-ins
@@ -62,9 +64,33 @@ public:
     AKRESULT TimeSkip(AkUInt32 in_uFrames) override;
 
 private:
+    int filterOrder = 8;
+
     MSEQFXParams* m_pParams;
     AK::IAkPluginMemAlloc* m_pAllocator;
     AK::IAkEffectPluginContext* m_pContext;
+
+    // High shelf
+    Dsp::SimpleFilter <Dsp::Butterworth::HighShelf <8>, 1> highShelf;
+
+    double sampleRate;
+
+    double freq1;
+    double freq2;
+    double filter1Gain;
+
+    // Corner frequency cutoff calculations from Q
+    double computeUpperCutoffFrequency(double q, double f0);
+    double computeLowerCutoffFrequency(double q, double f0);
+
+    // Construct/Deconstruct Mid/Side Buffers 
+    void constructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength);
+    void deconstructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength);
+
+    // Mid/Side Buffers
+    float* midBuffer;
+    float* sideBuffer;
+
 };
 
 #endif // MSEQFX_H
