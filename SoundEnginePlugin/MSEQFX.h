@@ -1,26 +1,20 @@
 /*******************************************************************************
 The content of this file includes portions of the AUDIOKINETIC Wwise Technology
 released in source code form as part of the SDK installer package.
-
 Commercial License Usage
-
 Licensees holding valid commercial licenses to the AUDIOKINETIC Wwise Technology
 may use this file in accordance with the end user license agreement provided
 with the software or, alternatively, in accordance with the terms contained in a
 written agreement between you and Audiokinetic Inc.
-
 Apache License Usage
-
 Alternatively, this file may be used under the Apache License, Version 2.0 (the
 "Apache License"); you may not use this file except in compliance with the
 Apache License. You may obtain a copy of the Apache License at
 http://www.apache.org/licenses/LICENSE-2.0.
-
 Unless required by applicable law or agreed to in writing, software distributed
 under the Apache License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
 OR CONDITIONS OF ANY KIND, either express or implied. See the Apache License for
 the specific language governing permissions and limitations under the License.
-
   Copyright (c) 2021 Audiokinetic Inc.
 *******************************************************************************/
 
@@ -29,6 +23,9 @@ the specific language governing permissions and limitations under the License.
 
 #include "MSEQFXParams.h"
 #include "DspFilters/Dsp.h"
+#include "Biquad/ParametricEQ.h"
+
+const int filterOrder = 50;
 
 
 /// See https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine__plugins__effects.html
@@ -64,20 +61,18 @@ public:
     AKRESULT TimeSkip(AkUInt32 in_uFrames) override;
 
 private:
-    int filterOrder = 8;
 
     MSEQFXParams* m_pParams;
     AK::IAkPluginMemAlloc* m_pAllocator;
     AK::IAkEffectPluginContext* m_pContext;
 
     // High shelf
-    Dsp::SimpleFilter <Dsp::Butterworth::HighShelf <8>, 1> highShelf;
+    Dsp::SimpleFilter <Dsp::Butterworth::HighShelf <filterOrder>, 1> highShelf;
+
+    // First Parametric Peak EQ
+    Parametric peakOne;
 
     double sampleRate;
-
-    double freq1;
-    double freq2;
-    double filter1Gain;
 
     // Corner frequency cutoff calculations from Q
     double computeUpperCutoffFrequency(double q, double f0);

@@ -39,214 +39,84 @@ for the documentation about the plugin xml format
         </Platform>
       </PlatformSupport>
     </PluginInfo>
-    <Properties>
-      <!-- Add your property definitions here -->
-		<Property Name="midSideFilter1" DocId="MidSideToggle" Type="bool" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Mid(out) Side(in)" DisplayGroup="Band 1">
-			<DefaultValue>false</DefaultValue>
-			<AudioEnginePropertyID>0</AudioEnginePropertyID>
-		</Property>
-		<Property Name="FilterTypeBand1" DocId="FilterTypeBand" Type="int32" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Band 1 Filter Type" DisplayGroup="Band 1">
-			<DefaultValue>10005</DefaultValue>
-			<AudioEnginePropertyID>1</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Enumeration Type="int32">
-						<Value DisplayName="Low Shelf">10004</Value>
-						<Value DisplayName="High Shelf">10005</Value>
-						<Value DisplayName="Parametric EQ">10006</Value>
-					</Enumeration>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-      <Property Name="band1Gain" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Decibels" DisplayName="Band 1 Filter Gain" DisplayGroup="Band 1">
-		  <UserInterface Step="0.5" Fine="0.1" Decimals="1" />
-		  <DefaultValue>0</DefaultValue>
-		  <AudioEnginePropertyID>2</AudioEnginePropertyID>
-		  <Restrictions>
-			  <ValueRestriction>
-				  <Range Type="Real32">
-					  <Min>-48</Min>
-					  <Max>48</Max>
-				  </Range>
-			  </ValueRestriction>
-		  </Restrictions>
-      </Property>
-		<Property Name="FrequencyBand1" DocId="FrequencyBand" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Frequency" DisplayName="Band 1 Frequency" DisplayGroup="Band 1">
-			<UserInterface Decimals="0"/>
-			<DefaultValue>1000</DefaultValue>
-			<AudioEnginePropertyID>3</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Range Type="Real32">
-						<Min>20</Min>
-						<Max>20000</Max>
-					</Range>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-		<Property Name="QFactorBand1" DocId="QFactorBand" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Band 1 Quality Factor" DisplayGroup="Band 1">
-			<UserInterface Step="0.1" Fine="0.01" Decimals="2"/>
-			<DefaultValue>1</DefaultValue>
-			<AudioEnginePropertyID>4</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Range Type="Real32">
-						<Min>0.5</Min>
-						<Max>40</Max>
-					</Range>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+	  <Properties>
+		  <!-- Add your property definitions here -->
+		  <Property Name="midSideFilter1" DocId="MidSideToggle" Type="bool" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Mid(out) Side(in)" DisplayGroup="Band 1">
+			  <DefaultValue>true</DefaultValue>
+			  <AudioEnginePropertyID>0</AudioEnginePropertyID>
+		  </Property>
+		  <Property Name="band1Gain" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Decibels" DisplayName="Band 1 Filter Gain" DisplayGroup="Band 1">
+			  <UserInterface Step="0.5" Fine="0.1" Decimals="1" />
+			  <DefaultValue>0</DefaultValue>
+			  <AudioEnginePropertyID>1</AudioEnginePropertyID>
+			  <Restrictions>
+				  <ValueRestriction>
+					  <Range Type="Real32">
+						  <Min>-36</Min>
+						  <Max>36</Max>
+					  </Range>
+				  </ValueRestriction>
+			  </Restrictions>
+		  </Property>
+		  <Property Name="FrequencyBand1" DocId="FrequencyBand" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Frequency" DisplayName="Band 1 Frequency" DisplayGroup="Band 1">
+			  <UserInterface Decimals="0"/>
+			  <DefaultValue>5000</DefaultValue>
+			  <AudioEnginePropertyID>2</AudioEnginePropertyID>
+			  <Restrictions>
+				  <ValueRestriction>
+					  <Range Type="Real32">
+						  <Min>20</Min>
+						  <Max>20000</Max>
+					  </Range>
+				  </ValueRestriction>
+			  </Restrictions>
+		  </Property>
 
-		<Property Name="midSideFilter2" DocId="MidSideToggle" Type="bool" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Mid(out) Side(in)" DisplayGroup="Band 2">
-			<DefaultValue>false</DefaultValue>
-			<AudioEnginePropertyID>5</AudioEnginePropertyID>
-		</Property>
-		<Property Name="FilterTypeBand2" DocId="FilterTypeBand" Type="int32" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Band 2 Filter Type" DisplayGroup="Band 2">
-			<DefaultValue>0</DefaultValue>
-			<AudioEnginePropertyID>5</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Enumeration Type="int32">
-						<Value DisplayName="Low Shelf">0</Value>
-						<Value DisplayName="High Shelf">1</Value>
-						<Value DisplayName="Parametric EQ">2</Value>
-					</Enumeration>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-		<Property Name="band2Gain" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Decibels" DisplayName="Band 2 Filter Gain" DisplayGroup="Band 2">
-			<UserInterface Step="0.5" Fine="0.1" Decimals="1" />
-			<DefaultValue>0</DefaultValue>
-			<AudioEnginePropertyID>6</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Range Type="Real32">
-						<Min>-48</Min>
-						<Max>48</Max>
-					</Range>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-		<Property Name="FrequencyBand2" DocId="FrequencyBand" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Frequency" DisplayName="Band 2 Frequency" DisplayGroup="Band 2">
-			<UserInterface Decimals="0"/>
-			<DefaultValue>1000</DefaultValue>
-			<AudioEnginePropertyID>7</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Range Type="Real32">
-						<Min>20</Min>
-						<Max>20000</Max>
-					</Range>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-
-		<Property Name="midSideFilter3" DocId="MidSideToggle" Type="bool" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Mid(out) Side(in)" DisplayGroup="Band 3">
-			<DefaultValue>true</DefaultValue>
-			<AudioEnginePropertyID>8</AudioEnginePropertyID>
-		</Property>
-		<Property Name="FilterTypeBand3" DocId="FilterTypeBand" Type="int32" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Band 3 Filter Type" DisplayGroup="Band 3">
-			<DefaultValue>0</DefaultValue>
-			<AudioEnginePropertyID>9</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Enumeration Type="int32">
-						<Value DisplayName="Low Shelf">0</Value>
-						<Value DisplayName="High Shelf">1</Value>
-						<Value DisplayName="Parametric EQ">2</Value>
-					</Enumeration>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-		<Property Name="band3Gain" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Decibels" DisplayName="Band 3 Filter Gain" DisplayGroup="Band 3">
-			<UserInterface Step="0.5" Fine="0.1" Decimals="1" />
-			<DefaultValue>0</DefaultValue>
-			<AudioEnginePropertyID>10</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Range Type="Real32">
-						<Min>-48</Min>
-						<Max>48</Max>
-					</Range>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-		<Property Name="FrequencyBand3" DocId="FrequencyBand" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Frequency" DisplayName="Band 3 Frequency" DisplayGroup="Band 3">
-			<UserInterface Decimals="0"/>
-			<DefaultValue>5000</DefaultValue>
-			<AudioEnginePropertyID>11</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Range Type="Real32">
-						<Min>20</Min>
-						<Max>20000</Max>
-					</Range>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-
-		<Property Name="midSideFilter4" DocId="MidSideToggle" Type="bool" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Mid(out) Side(in)" DisplayGroup="Band 4">
-			<DefaultValue>true</DefaultValue>
-			<AudioEnginePropertyID>12</AudioEnginePropertyID>
-		</Property>
-		<Property Name="FilterTypeBand4" DocId="FilterTypeBand" Type="int32" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Band 4 Filter Type" DisplayGroup="Band 4">
-			<DefaultValue>0</DefaultValue>
-			<AudioEnginePropertyID>13</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Enumeration Type="int32">
-						<Value DisplayName="Low Shelf">0</Value>
-						<Value DisplayName="High Shelf">1</Value>
-						<Value DisplayName="Parametric EQ">2</Value>
-					</Enumeration>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-		<Property Name="band4Gain" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Decibels" DisplayName="Band 4 Filter Gain" DisplayGroup="Band 4">
-			<UserInterface Step="0.5" Fine="0.1" Decimals="1" />
-			<DefaultValue>0</DefaultValue>
-			<AudioEnginePropertyID>14</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Range Type="Real32">
-						<Min>-48</Min>
-						<Max>48</Max>
-					</Range>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-		<Property Name="FrequencyBand4" DocId="FrequencyBand" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Frequency" DisplayName="Band 4 Frequency" DisplayGroup="Band 4">
-			<UserInterface Decimals="0"/>
-			<DefaultValue>10000</DefaultValue>
-			<AudioEnginePropertyID>15</AudioEnginePropertyID>
-			<Restrictions>
-				<ValueRestriction>
-					<Range Type="Real32">
-						<Min>20</Min>
-						<Max>20000</Max>
-					</Range>
-				</ValueRestriction>
-			</Restrictions>
-		</Property>
-		
-	</Properties>
+		  <Property Name="midSideFilter2" DocId="MidSideToggle" Type="bool" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Mid(out) Side(in)" DisplayGroup="Band 2">
+			  <DefaultValue>false</DefaultValue>
+			  <AudioEnginePropertyID>3</AudioEnginePropertyID>
+		  </Property>
+		  <Property Name="band2Gain" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Decibels" DisplayName="Band 2 Filter Gain" DisplayGroup="Band 2">
+			  <UserInterface Step="0.5" Fine="0.1" Decimals="1" />
+			  <DefaultValue>0</DefaultValue>
+			  <AudioEnginePropertyID>4</AudioEnginePropertyID>
+			  <Restrictions>
+				  <ValueRestriction>
+					  <Range Type="Real32">
+						  <Min>-36</Min>
+						  <Max>36</Max>
+					  </Range>
+				  </ValueRestriction>
+			  </Restrictions>
+		  </Property>
+		  <Property Name="FrequencyBand2" DocId="FrequencyBand" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Frequency" DisplayName="Band 2 Frequency" DisplayGroup="Band 2">
+			  <UserInterface Decimals="0"/>
+			  <DefaultValue>1000</DefaultValue>
+			  <AudioEnginePropertyID>5</AudioEnginePropertyID>
+			  <Restrictions>
+				  <ValueRestriction>
+					  <Range Type="Real32">
+						  <Min>20</Min>
+						  <Max>20000</Max>
+					  </Range>
+				  </ValueRestriction>
+			  </Restrictions>
+		  </Property>
+		  <Property Name="QFactorBand2" DocId="QFactorBand" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Band 2 Quality Factor" DisplayGroup="Band 2">
+			  <UserInterface Step="0.1" Fine="0.01" Decimals="2"/>
+			  <DefaultValue>1</DefaultValue>
+			  <AudioEnginePropertyID>6</AudioEnginePropertyID>
+			  <Restrictions>
+				  <ValueRestriction>
+					  <Range Type="Real32">
+						  <Min>0.5</Min>
+						  <Max>40</Max>
+					  </Range>
+				  </ValueRestriction>
+			  </Restrictions>
+		  </Property>
+		  
+		  
+	  </Properties>
   </EffectPlugin>
 </PluginModule>

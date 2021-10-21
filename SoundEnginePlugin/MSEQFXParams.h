@@ -34,20 +34,26 @@ the specific language governing permissions and limitations under the License.
 // attributes in the xml property definition.
 
 static const AkPluginParamID FILTER1MIDSIDE = 0;
-static const AkPluginParamID FILTER1TYPE = 1;
-static const AkPluginParamID FILTER1GAIN = 2;
-static const AkPluginParamID FILTER1FREQUENCY = 3;
-static const AkPluginParamID FILTER1Q = 4;
+static const AkPluginParamID FILTER1GAIN = 1;
+static const AkPluginParamID FILTER1FREQUENCY = 2;
 
-static const AkUInt32 NUM_PARAMS = 5;
+static const AkPluginParamID FILTER2MIDSIDE = 3;
+static const AkPluginParamID FILTER2GAIN = 4;
+static const AkPluginParamID FILTER2FREQUENCY = 5;
+static const AkPluginParamID FILTER2Q = 6;
+
+static const AkUInt32 NUM_PARAMS = 7;
 
 struct MSEQRTPCParams
 {
     AkReal32 filter1Gain;
     AkReal32 filter1Freq;
-    AkReal32 filter1type;
-    AkReal32 filter1Q;
     AkReal32 filter1MidSide;
+
+    AkReal32 filter2Gain;
+    AkReal32 filter2Freq;
+    AkReal32 filter2MidSide;
+    AkReal32 filter2QualityFactor;
 };
 
 struct MSEQNonRTPCParams

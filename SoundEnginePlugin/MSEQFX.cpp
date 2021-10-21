@@ -1,26 +1,20 @@
 /*******************************************************************************
 The content of this file includes portions of the AUDIOKINETIC Wwise Technology
 released in source code form as part of the SDK installer package.
-
 Commercial License Usage
-
 Licensees holding valid commercial licenses to the AUDIOKINETIC Wwise Technology
 may use this file in accordance with the end user license agreement provided
 with the software or, alternatively, in accordance with the terms contained in a
 written agreement between you and Audiokinetic Inc.
-
 Apache License Usage
-
 Alternatively, this file may be used under the Apache License, Version 2.0 (the
 "Apache License"); you may not use this file except in compliance with the
 Apache License. You may obtain a copy of the Apache License at
 http://www.apache.org/licenses/LICENSE-2.0.
-
 Unless required by applicable law or agreed to in writing, software distributed
 under the Apache License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
 OR CONDITIONS OF ANY KIND, either express or implied. See the Apache License for
 the specific language governing permissions and limitations under the License.
-
   Copyright (c) 2021 Audiokinetic Inc.
 *******************************************************************************/
 
@@ -62,10 +56,7 @@ AKRESULT MSEQFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginC
 
     sampleRate = in_rFormat.uSampleRate;
 
-    freq2 = computeUpperCutoffFrequency(m_pParams->RTPC.filter1Q, m_pParams->RTPC.filter1Freq);
-    freq1 = computeLowerCutoffFrequency(m_pParams->RTPC.filter1Q, m_pParams->RTPC.filter1Freq);
-
-    filter1Gain = AK_DBTOLIN(m_pParams->RTPC.filter1Gain);
+    peakOne = Parametric();
 
     return AK_Success;
 }
@@ -85,7 +76,7 @@ AKRESULT MSEQFX::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
 {
     out_rPluginInfo.eType = AkPluginTypeEffect;
     out_rPluginInfo.bIsInPlace = true;
-	out_rPluginInfo.bCanProcessObjects = false;
+    out_rPluginInfo.bCanProcessObjects = false;
     out_rPluginInfo.uBuildVersion = AK_WWISESDK_VERSION_COMBINED;
     return AK_Success;
 }
@@ -95,13 +86,9 @@ void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
     const int uNumChannels = io_pBuffer->NumChannels();
     const int uBufferLength = io_pBuffer->uValidFrames;
 
-    filter1Gain = AK_DBTOLIN(m_pParams->RTPC.filter1Gain);
-
-    highShelf.setup(filterOrder, sampleRate, m_pParams->RTPC.filter1Freq, filter1Gain);
-
-
-    // High shelf is working! Now, all you will need to do is get the other bands working, and make each parametric.
-
+    // Calculate Coefficients
+    highShelf.setup(filterOrder, sampleRate, m_pParams->RTPC.filter1Freq, AK_DBTOLIN(m_pParams->RTPC.filter1Gain));
+    peakOne.calcCoeffs(AK_DBTOLIN(m_pParams->RTPC.filter2Gain), m_pParams->RTPC.filter2Freq, m_pParams->RTPC.filter2QualityFactor, sampleRate);
 
     float* channels[1];
 
@@ -110,11 +97,13 @@ void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
     {
         channels[0] = io_pBuffer->GetChannel(0);
         highShelf.process(uBufferLength, channels);
+        peakOne.processBlock(channels[0], uBufferLength, false);
     }
     // Process side
     else
     {
         constructMidSideBuffers(io_pBuffer, uBufferLength);
+
         if (m_pParams->RTPC.filter1MidSide == true)
         {
             channels[0] = sideBuffer;
@@ -125,8 +114,18 @@ void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
         }
         highShelf.process(uBufferLength, channels);
 
+        if (m_pParams->RTPC.filter2MidSide == true)
+        {
+            channels[0] = sideBuffer;
+        }
+        else
+        {
+            channels[0] = midBuffer;
+        }
+        peakOne.processBlock(channels[0], uBufferLength, false);
+
         deconstructMidSideBuffers(io_pBuffer, uBufferLength);
-    }   
+    }
 }
 
 void MSEQFX::constructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength)

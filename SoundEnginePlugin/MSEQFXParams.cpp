@@ -53,11 +53,15 @@ AKRESULT MSEQFXParams::Init(AK::IAkPluginMemAlloc* in_pAllocator, const void* in
     if (in_ulBlockSize == 0)
     {
         // Initialize default parameters here
-        RTPC.filter1Freq = 10000.0f;
+        RTPC.filter1Freq = 5000.0f;
         RTPC.filter1Gain = 0.0f;
         RTPC.filter1MidSide = true;
-        RTPC.filter1Q = 1.0;
-        RTPC.filter1type = 1;
+
+        RTPC.filter2Freq = 1000.0f;
+        RTPC.filter2Gain = 0.0f;
+        RTPC.filter2MidSide = false;
+        RTPC.filter2QualityFactor = 1.0f;
+
 
         m_paramChangeHandler.SetAllParamChanges();
         return AK_Success;
@@ -81,8 +85,11 @@ AKRESULT MSEQFXParams::SetParamsBlock(const void* in_pParamsBlock, AkUInt32 in_u
     RTPC.filter1Freq = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
     RTPC.filter1Gain = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
     RTPC.filter1MidSide = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
-    RTPC.filter1Q = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
-    RTPC.filter1type = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
+
+    RTPC.filter2Freq = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
+    RTPC.filter2Gain = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
+    RTPC.filter2MidSide = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
+    RTPC.filter2QualityFactor = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
 
     CHECKBANKDATASIZE(in_ulBlockSize, eResult);
     m_paramChangeHandler.SetAllParamChanges();
@@ -109,13 +116,22 @@ AKRESULT MSEQFXParams::SetParam(AkPluginParamID in_paramID, const void* in_pValu
         RTPC.filter1MidSide = *((AkReal32*)in_pValue);
         m_paramChangeHandler.SetParamChange(FILTER1MIDSIDE);
         break;
-    case FILTER1Q:
-        RTPC.filter1Q = *((AkReal32*)in_pValue);
-        m_paramChangeHandler.SetParamChange(FILTER1Q);
+
+    case FILTER2GAIN:
+        RTPC.filter2Gain = *((AkReal32*)in_pValue);
+        m_paramChangeHandler.SetParamChange(FILTER2GAIN);
         break;
-    case FILTER1TYPE:
-        RTPC.filter1type = *((AkReal32*)in_pValue);
-        m_paramChangeHandler.SetParamChange(FILTER1TYPE);
+    case FILTER2FREQUENCY:
+        RTPC.filter2Freq = *((AkReal32*)in_pValue);
+        m_paramChangeHandler.SetParamChange(FILTER2FREQUENCY);
+        break;
+    case FILTER2MIDSIDE:
+        RTPC.filter2MidSide = *((AkReal32*)in_pValue);
+        m_paramChangeHandler.SetParamChange(FILTER2MIDSIDE);
+        break;
+    case FILTER2Q:
+        RTPC.filter2QualityFactor = *((AkReal32*)in_pValue);
+        m_paramChangeHandler.SetParamChange(FILTER2Q);
         break;
 
     default:
