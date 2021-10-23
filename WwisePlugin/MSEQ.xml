@@ -52,8 +52,8 @@ for the documentation about the plugin xml format
 			  <Restrictions>
 				  <ValueRestriction>
 					  <Range Type="Real32">
-						  <Min>-36</Min>
-						  <Max>36</Max>
+						  <Min>-24</Min>
+						  <Max>24</Max>
 					  </Range>
 				  </ValueRestriction>
 			  </Restrictions>
@@ -73,7 +73,7 @@ for the documentation about the plugin xml format
 		  </Property>
 
 		  <Property Name="midSideFilter2" DocId="MidSideToggle" Type="bool" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Mid(out) Side(in)" DisplayGroup="Band 2">
-			  <DefaultValue>false</DefaultValue>
+			  <DefaultValue>true</DefaultValue>
 			  <AudioEnginePropertyID>3</AudioEnginePropertyID>
 		  </Property>
 		  <Property Name="band2Gain" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Decibels" DisplayName="Band 2 Filter Gain" DisplayGroup="Band 2">
@@ -83,8 +83,8 @@ for the documentation about the plugin xml format
 			  <Restrictions>
 				  <ValueRestriction>
 					  <Range Type="Real32">
-						  <Min>-36</Min>
-						  <Max>36</Max>
+						  <Min>-24</Min>
+						  <Max>24</Max>
 					  </Range>
 				  </ValueRestriction>
 			  </Restrictions>
@@ -116,6 +116,80 @@ for the documentation about the plugin xml format
 			  </Restrictions>
 		  </Property>
 		  
+		  <Property Name="midSideFilter3" DocId="MidSideToggle" Type="bool" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Mid(out) Side(in)" DisplayGroup="Band 3">
+			  <DefaultValue>false</DefaultValue>
+			  <AudioEnginePropertyID>7</AudioEnginePropertyID>
+		  </Property>
+		  <Property Name="band3Gain" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Decibels" DisplayName="Band 3 Filter Gain" DisplayGroup="Band 3">
+			  <UserInterface Step="0.5" Fine="0.1" Decimals="1" />
+			  <DefaultValue>0</DefaultValue>
+			  <AudioEnginePropertyID>8</AudioEnginePropertyID>
+			  <Restrictions>
+				  <ValueRestriction>
+					  <Range Type="Real32">
+						  <Min>-24</Min>
+						  <Max>24</Max>
+					  </Range>
+				  </ValueRestriction>
+			  </Restrictions>
+		  </Property>
+		  <Property Name="FrequencyBand3" DocId="FrequencyBand" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Frequency" DisplayName="Band 3 Frequency" DisplayGroup="Band 3">
+			  <UserInterface Decimals="0"/>
+			  <DefaultValue>1000</DefaultValue>
+			  <AudioEnginePropertyID>9</AudioEnginePropertyID>
+			  <Restrictions>
+				  <ValueRestriction>
+					  <Range Type="Real32">
+						  <Min>20</Min>
+						  <Max>20000</Max>
+					  </Range>
+				  </ValueRestriction>
+			  </Restrictions>
+		  </Property>
+		  <Property Name="QFactorBand3" DocId="QFactorBand" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Band 3 Quality Factor" DisplayGroup="Band 3">
+			  <UserInterface Step="0.1" Fine="0.01" Decimals="2"/>
+			  <DefaultValue>1</DefaultValue>
+			  <AudioEnginePropertyID>10</AudioEnginePropertyID>
+			  <Restrictions>
+				  <ValueRestriction>
+					  <Range Type="Real32">
+						  <Min>0.5</Min>
+						  <Max>40</Max>
+					  </Range>
+				  </ValueRestriction>
+			  </Restrictions>
+		  </Property>
+
+		  <Property Name="midSideFilter4" DocId="MidSideToggle" Type="bool" SupportRTPCType="Exclusive" ForceRTPCCurveSegmentShape="Constant" DisplayName="Mid(out) Side(in)" DisplayGroup="Band 4">
+			  <DefaultValue>false</DefaultValue>
+			  <AudioEnginePropertyID>11</AudioEnginePropertyID>
+		  </Property>
+		  <Property Name="band4Gain" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Decibels" DisplayName="Band 4 Filter Gain" DisplayGroup="Band 4">
+			  <UserInterface Step="0.5" Fine="0.1" Decimals="1" />
+			  <DefaultValue>0</DefaultValue>
+			  <AudioEnginePropertyID>12</AudioEnginePropertyID>
+			  <Restrictions>
+				  <ValueRestriction>
+					  <Range Type="Real32">
+						  <Min>-24</Min>
+						  <Max>24</Max>
+					  </Range>
+				  </ValueRestriction>
+			  </Restrictions>
+		  </Property>
+		  <Property Name="FrequencyBand4" DocId="FrequencyBand" Type="Real32" SupportRTPCType="Exclusive" DataMeaning="Frequency" DisplayName="Band 4 Frequency" DisplayGroup="Band 4">
+			  <UserInterface Decimals="0"/>
+			  <DefaultValue>120</DefaultValue>
+			  <AudioEnginePropertyID>13</AudioEnginePropertyID>
+			  <Restrictions>
+				  <ValueRestriction>
+					  <Range Type="Real32">
+						  <Min>20</Min>
+						  <Max>20000</Max>
+					  </Range>
+				  </ValueRestriction>
+			  </Restrictions>
+		  </Property>
 		  
 	  </Properties>
   </EffectPlugin>

@@ -22,7 +22,7 @@ the specific language governing permissions and limitations under the License.
 #define MSEQFX_H
 
 #include "MSEQFXParams.h"
-#include "DspFilters/Dsp.h"
+#include "ExtendedDspFilters/Dsp.h"
 #include "Biquad/ParametricEQ.h"
 
 const int filterOrder = 50;
@@ -69,12 +69,16 @@ private:
     // High shelf
     Dsp::SimpleFilter <Dsp::Butterworth::HighShelf <filterOrder>, 1> highShelf;
 
+    // Low shelf
+    Dsp::SimpleFilter <Dsp::Butterworth::LowShelf <filterOrder>, 1> lowShelf;
+
     // First Parametric Peak EQ
     Parametric peakOne;
+    Parametric peakTwo;
 
     double sampleRate;
-
-    // Corner frequency cutoff calculations from Q
+    float linGain = 0;
+    // Corner frequency cutoff calculations. For future parametric butterworth designs with upper and lower band edge frequencies.
     double computeUpperCutoffFrequency(double q, double f0);
     double computeLowerCutoffFrequency(double q, double f0);
 

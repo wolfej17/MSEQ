@@ -20,8 +20,8 @@ the specific language governing permissions and limitations under the License.
 
 #include "MSEQFX.h"
 #include "../MSEQConfig.h"
-#include "DspFilters/Common.h"
-#include "DspFilters//Filter.h"
+#include "ExtendedDspFilters/Common.h"
+#include "ExtendedDspFilters//Filter.h"
 
 #include <AK/AkWwiseSDKVersion.h>
 
@@ -57,6 +57,7 @@ AKRESULT MSEQFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginC
     sampleRate = in_rFormat.uSampleRate;
 
     peakOne = Parametric();
+    peakTwo = Parametric();
 
     return AK_Success;
 }
@@ -87,45 +88,32 @@ void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
     const int uBufferLength = io_pBuffer->uValidFrames;
 
     // Calculate Coefficients
-    highShelf.setup(filterOrder, sampleRate, m_pParams->RTPC.filter1Freq, AK_DBTOLIN(m_pParams->RTPC.filter1Gain));
-    peakOne.calcCoeffs(AK_DBTOLIN(m_pParams->RTPC.filter2Gain), m_pParams->RTPC.filter2Freq, m_pParams->RTPC.filter2QualityFactor, sampleRate);
+    highShelf.setup(filterOrder, sampleRate, m_pParams->RTPC.filter1Freq, m_pParams->RTPC.filter1Gain);
+    lowShelf.setup(filterOrder, sampleRate, m_pParams->RTPC.filter4Freq, m_pParams->RTPC.filter4Gain);
+    peakOne.calcCoeffs(m_pParams->RTPC.filter2Gain, m_pParams->RTPC.filter2Freq, m_pParams->RTPC.filter2QualityFactor, sampleRate);
+    peakTwo.calcCoeffs(m_pParams->RTPC.filter3Gain, m_pParams->RTPC.filter3Freq, m_pParams->RTPC.filter3QualityFactor, sampleRate);
 
     float* channels[1];
 
-    // Don't process side if mono
-    if (uNumChannels == 1)
-    {
-        channels[0] = io_pBuffer->GetChannel(0);
-        highShelf.process(uBufferLength, channels);
-        peakOne.processBlock(channels[0], uBufferLength, false);
-    }
-    // Process side
-    else
-    {
-        constructMidSideBuffers(io_pBuffer, uBufferLength);
+    constructMidSideBuffers(io_pBuffer, uBufferLength);
 
-        if (m_pParams->RTPC.filter1MidSide == true)
-        {
-            channels[0] = sideBuffer;
-        }
-        else
-        {
-            channels[0] = midBuffer;
-        }
-        highShelf.process(uBufferLength, channels);
+    // High Shelf
+    if (m_pParams->RTPC.filter1MidSide == true) { channels[0] = sideBuffer; } else { channels[0] = midBuffer; }
+    if (m_pParams->RTPC.filter1Gain != 0) { highShelf.process(uBufferLength, channels); }
 
-        if (m_pParams->RTPC.filter2MidSide == true)
-        {
-            channels[0] = sideBuffer;
-        }
-        else
-        {
-            channels[0] = midBuffer;
-        }
-        peakOne.processBlock(channels[0], uBufferLength, false);
+    // Band 2
+    if (m_pParams->RTPC.filter2MidSide == true) { channels[0] = sideBuffer; } else { channels[0] = midBuffer; }
+    if (m_pParams->RTPC.filter2Gain != 0) { peakOne.processBlock(channels[0], uBufferLength, false); }
 
-        deconstructMidSideBuffers(io_pBuffer, uBufferLength);
-    }
+    // Band 3
+    if (m_pParams->RTPC.filter3MidSide == true) { channels[0] = sideBuffer; } else { channels[0] = midBuffer; }
+    if (m_pParams->RTPC.filter3Gain != 0) { peakTwo.processBlock(channels[0], uBufferLength, false); }
+
+    // Low Shelf
+    if (m_pParams->RTPC.filter4MidSide == true) { channels[0] = sideBuffer; } else { channels[0] = midBuffer; }
+    if (m_pParams->RTPC.filter4Gain != 0) { lowShelf.process(uBufferLength, channels); }
+
+    deconstructMidSideBuffers(io_pBuffer, uBufferLength);
 }
 
 void MSEQFX::constructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength)
@@ -138,8 +126,8 @@ void MSEQFX::constructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength)
 
     for (int i = 0; i < bufferLength; ++i)
     {
-        float midSample = (channel1[i] + channel2[i]) / sqrt(2);
-        float sideSample = (channel1[i] - channel2[i]) / sqrt(2);
+        float midSample = (channel1[i] + channel2[i]) / float(sqrt(2));  // Cast to avoid arithmetic overflow
+        float sideSample = (channel1[i] - channel2[i]) / float(sqrt(2)); // Cast to avoid arithmetic overflow
 
         midBuffer[i] = midSample;
         sideBuffer[i] = sideSample;
@@ -153,8 +141,8 @@ void MSEQFX::deconstructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength)
 
     for (int i = 0; i < bufferLength; ++i)
     {
-        float chanOneSample = (midBuffer[i] + sideBuffer[i]) / sqrt(2);
-        float chanTwoSample = (midBuffer[i] - sideBuffer[i]) / sqrt(2);
+        float chanOneSample = (midBuffer[i] + sideBuffer[i]) / float(sqrt(2)); // Cast to avoid arithmetic overflow
+        float chanTwoSample = (midBuffer[i] - sideBuffer[i]) / float(sqrt(2)); // Cast to avoid arithmetic overflow
 
         channel1[i] = chanOneSample;
         channel2[i] = chanTwoSample;

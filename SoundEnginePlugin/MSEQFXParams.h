@@ -42,7 +42,16 @@ static const AkPluginParamID FILTER2GAIN = 4;
 static const AkPluginParamID FILTER2FREQUENCY = 5;
 static const AkPluginParamID FILTER2Q = 6;
 
-static const AkUInt32 NUM_PARAMS = 7;
+static const AkPluginParamID FILTER3MIDSIDE = 7;
+static const AkPluginParamID FILTER3GAIN = 8;
+static const AkPluginParamID FILTER3FREQUENCY = 9;
+static const AkPluginParamID FILTER3Q = 10;
+
+static const AkPluginParamID FILTER4MIDSIDE = 11;
+static const AkPluginParamID FILTER4GAIN = 12;
+static const AkPluginParamID FILTER4FREQUENCY = 13;
+
+static const AkUInt32 NUM_PARAMS = 14;
 
 struct MSEQRTPCParams
 {
@@ -54,6 +63,15 @@ struct MSEQRTPCParams
     AkReal32 filter2Freq;
     AkReal32 filter2MidSide;
     AkReal32 filter2QualityFactor;
+
+    AkReal32 filter3Gain;
+    AkReal32 filter3Freq;
+    AkReal32 filter3MidSide;
+    AkReal32 filter3QualityFactor;
+
+    AkReal32 filter4Gain;
+    AkReal32 filter4Freq;
+    AkReal32 filter4MidSide;
 };
 
 struct MSEQNonRTPCParams

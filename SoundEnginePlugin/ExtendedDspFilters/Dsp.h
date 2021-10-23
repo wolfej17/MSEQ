@@ -40,23 +40,19 @@ THE SOFTWARE.
 // Include this file in your application to get everything
 //
 
-#include "DspFilters/Common.h"
+#include "ExtendedDspFilters/Common.h"
 
-#include "DspFilters/Biquad.h"
-#include "DspFilters/Cascade.h"
-#include "DspFilters/Filter.h"
-#include "DspFilters/PoleFilter.h"
-#include "DspFilters/SmoothedFilter.h"
-#include "DspFilters/State.h"
-#include "DspFilters/Utilities.h"
+#include "ExtendedDspFilters/Biquad.h"
+#include "ExtendedDspFilters/Cascade.h"
+#include "ExtendedDspFilters/Filter.h"
+#include "ExtendedDspFilters/PoleFilter.h"
+#include "ExtendedDspFilters/SmoothedFilter.h"
+#include "ExtendedDspFilters/State.h"
+#include "ExtendedDspFilters/Utilities.h"
 
-#include "DspFilters/Bessel.h"
-#include "DspFilters/Butterworth.h"
-#include "DspFilters/ChebyshevI.h"
-#include "DspFilters/ChebyshevII.h"
-#include "DspFilters/Custom.h"
-#include "DspFilters/Elliptic.h"
-#include "DspFilters/Legendre.h"
-#include "DspFilters/RBJ.h"
+#include "ExtendedDspFilters/Butterworth.h"
+#include "ExtendedDspFilters/Custom.h"
+#include "ExtendedDspFilters/Elliptic.h"
+#include "ExtendedDspFilters/Legendre.h"
 
 #endif

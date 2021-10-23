@@ -48,13 +48,13 @@ public:
         }
     }
 
-    void calcCoeffs(float g, float freq, float quality, float sampRate)
+    void calcCoeffs(float gaindB, float freq, float quality, float sampRate)
     {
         q = quality;
-        gain = g;
+        gain = gaindB;
         frequency = freq;
 
-        float A = powf(10.0f, (gain / 40.0f));
+        float A = powf(10.0f, (gain / 40.0f)); // dB to linear
         float omega = 2.0f * M_PI * frequency / sampRate;
         float tsin = sinf(omega);
         float tcos = cosf(omega);
