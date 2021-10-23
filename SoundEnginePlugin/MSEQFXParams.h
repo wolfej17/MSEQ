@@ -33,45 +33,61 @@ the specific language governing permissions and limitations under the License.
 // Add parameters IDs here, those IDs should map to the AudioEnginePropertyID
 // attributes in the xml property definition.
 
-static const AkPluginParamID FILTER1MIDSIDE = 0;
-static const AkPluginParamID FILTER1GAIN = 1;
-static const AkPluginParamID FILTER1FREQUENCY = 2;
+static const AkPluginParamID FILTER1ENABLE = 0;
+static const AkPluginParamID FILTER1MIDSIDE = 1;
+static const AkPluginParamID FILTER1GAIN = 2;
+static const AkPluginParamID FILTER1FREQUENCY = 3;
+static const AkPluginParamID FILTER1TYPE = 4;
+static const AkPluginParamID FILTER1Q = 5;
 
-static const AkPluginParamID FILTER2MIDSIDE = 3;
-static const AkPluginParamID FILTER2GAIN = 4;
-static const AkPluginParamID FILTER2FREQUENCY = 5;
-static const AkPluginParamID FILTER2Q = 6;
+static const AkPluginParamID FILTER2ENABLE = 6;
+static const AkPluginParamID FILTER2MIDSIDE = 7;
+static const AkPluginParamID FILTER2GAIN = 8;
+static const AkPluginParamID FILTER2FREQUENCY = 9;
+static const AkPluginParamID FILTER2Q = 10;
 
-static const AkPluginParamID FILTER3MIDSIDE = 7;
-static const AkPluginParamID FILTER3GAIN = 8;
-static const AkPluginParamID FILTER3FREQUENCY = 9;
-static const AkPluginParamID FILTER3Q = 10;
+static const AkPluginParamID FILTER3ENABLE = 11;
+static const AkPluginParamID FILTER3MIDSIDE = 12;
+static const AkPluginParamID FILTER3GAIN = 13;
+static const AkPluginParamID FILTER3FREQUENCY = 14;
+static const AkPluginParamID FILTER3Q = 15;
 
-static const AkPluginParamID FILTER4MIDSIDE = 11;
-static const AkPluginParamID FILTER4GAIN = 12;
-static const AkPluginParamID FILTER4FREQUENCY = 13;
+static const AkPluginParamID FILTER4ENABLE = 16;
+static const AkPluginParamID FILTER4MIDSIDE = 17;
+static const AkPluginParamID FILTER4GAIN = 18;
+static const AkPluginParamID FILTER4FREQUENCY = 19;
+static const AkPluginParamID FILTER4TYPE = 20;
+static const AkPluginParamID FILTER4Q = 21;
 
-static const AkUInt32 NUM_PARAMS = 14;
+static const AkUInt32 NUM_PARAMS = 22;
 
 struct MSEQRTPCParams
 {
+    AkReal32 filter1Enable;
+    AkReal32 filter1MidSide;
     AkReal32 filter1Gain;
     AkReal32 filter1Freq;
-    AkReal32 filter1MidSide;
+    AkReal32 filter1Type;
+    AkReal32 filter1Q;
 
+    AkReal32 filter2Enable;
+    AkReal32 filter2MidSide;
     AkReal32 filter2Gain;
     AkReal32 filter2Freq;
-    AkReal32 filter2MidSide;
-    AkReal32 filter2QualityFactor;
+    AkReal32 filter2Q;
 
+    AkReal32 filter3Enable;
+    AkReal32 filter3MidSide;
     AkReal32 filter3Gain;
     AkReal32 filter3Freq;
-    AkReal32 filter3MidSide;
-    AkReal32 filter3QualityFactor;
+    AkReal32 filter3Q;
 
+    AkReal32 filter4Enable;
+    AkReal32 filter4MidSide;
     AkReal32 filter4Gain;
     AkReal32 filter4Freq;
-    AkReal32 filter4MidSide;
+    AkReal32 filter4Type;
+    AkReal32 filter4Q;
 };
 
 struct MSEQNonRTPCParams

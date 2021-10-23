@@ -24,9 +24,14 @@ the specific language governing permissions and limitations under the License.
 #include "MSEQFXParams.h"
 #include "ExtendedDspFilters/Dsp.h"
 #include "Biquad/ParametricEQ.h"
+#include "ExtendedDspFilters/Filter.h"
 
 const int filterOrder = 50;
 
+enum FilterType : int
+{
+    LOWPASS = 0, HIGHSHELF = 1, HIGHPASS = 2, LOWSHELF = 3
+};
 
 /// See https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine__plugins__effects.html
 /// for the documentation about effect plug-ins
@@ -66,15 +71,11 @@ private:
     AK::IAkPluginMemAlloc* m_pAllocator;
     AK::IAkEffectPluginContext* m_pContext;
 
-    // High shelf
     Dsp::SimpleFilter <Dsp::Butterworth::HighShelf <filterOrder>, 1> highShelf;
-
-    // Low shelf
-    Dsp::SimpleFilter <Dsp::Butterworth::LowShelf <filterOrder>, 1> lowShelf;
-
-    // First Parametric Peak EQ
-    Parametric peakOne;
-    Parametric peakTwo;
+    Dsp::SimpleFilter <Dsp::Butterworth::HighShelf <filterOrder>, 1> lowPass;
+    Parametric bandTwo;
+    Parametric bandThree;
+    Dsp::Filter* bandFour = nullptr;
 
     double sampleRate;
     float linGain = 0;
@@ -90,6 +91,12 @@ private:
     float* midBuffer;
     float* sideBuffer;
 
+    // values (in place of callback) to determine if new type of filter is selected. 
+    /// TODO: Implement a callback!
+    AkReal32 bandOneType = HIGHSHELF;
+    AkReal32 bandFourType = LOWSHELF;
+
+    void switchFilterType(Dsp::Filter** filterBand, int soundEngineBandType, int authoringBandType);
 };
 
 #endif // MSEQFX_H

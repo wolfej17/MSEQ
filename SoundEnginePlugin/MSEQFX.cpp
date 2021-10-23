@@ -56,20 +56,37 @@ AKRESULT MSEQFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginC
 
     sampleRate = in_rFormat.uSampleRate;
 
-    peakOne = Parametric();
-    peakTwo = Parametric();
+    bandOne = new Dsp::FilterDesign <Dsp::Butterworth::Design::LowPass <filterOrder>, 1>;
+    bandTwo = Parametric();
+    bandThree = Parametric();
+    bandFour = new Dsp::FilterDesign <Dsp::Butterworth::Design::LowShelf <filterOrder>, 1>;
 
     return AK_Success;
 }
 
 AKRESULT MSEQFX::Term(AK::IAkPluginMemAlloc* in_pAllocator)
 {
+    if (bandOne != nullptr)
+    {
+        delete bandOne;
+        bandOne = nullptr;
+    }
+    if (bandFour != nullptr)
+    {
+        delete bandFour;
+        bandFour = nullptr;
+    }
+
     AK_PLUGIN_DELETE(in_pAllocator, this);
     return AK_Success;
 }
 
 AKRESULT MSEQFX::Reset()
 {
+    bandOne->reset();
+    bandTwo.reset();
+    bandThree.reset();
+    bandFour->reset();
     return AK_Success;
 }
 
@@ -86,12 +103,10 @@ void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
 {
     const int uNumChannels = io_pBuffer->NumChannels();
     const int uBufferLength = io_pBuffer->uValidFrames;
-
-    // Calculate Coefficients
-    highShelf.setup(filterOrder, sampleRate, m_pParams->RTPC.filter1Freq, m_pParams->RTPC.filter1Gain);
-    lowShelf.setup(filterOrder, sampleRate, m_pParams->RTPC.filter4Freq, m_pParams->RTPC.filter4Gain);
-    peakOne.calcCoeffs(m_pParams->RTPC.filter2Gain, m_pParams->RTPC.filter2Freq, m_pParams->RTPC.filter2QualityFactor, sampleRate);
-    peakTwo.calcCoeffs(m_pParams->RTPC.filter3Gain, m_pParams->RTPC.filter3Freq, m_pParams->RTPC.filter3QualityFactor, sampleRate);
+    
+    //switchFilterType(&bandOne, bandOneType, int(m_pParams->RTPC.filter1Type));
+    // Setup filter for highshelf and low pass, separately.
+    bandOne->setParams(params);
 
     float* channels[1];
 
@@ -99,21 +114,30 @@ void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
 
     // High Shelf
     if (m_pParams->RTPC.filter1MidSide == true) { channels[0] = sideBuffer; } else { channels[0] = midBuffer; }
-    if (m_pParams->RTPC.filter1Gain != 0) { highShelf.process(uBufferLength, channels); }
+    if (m_pParams->RTPC.filter1Gain != 0) { bandOne->process(uBufferLength, channels); }
 
-    // Band 2
-    if (m_pParams->RTPC.filter2MidSide == true) { channels[0] = sideBuffer; } else { channels[0] = midBuffer; }
-    if (m_pParams->RTPC.filter2Gain != 0) { peakOne.processBlock(channels[0], uBufferLength, false); }
-
-    // Band 3
-    if (m_pParams->RTPC.filter3MidSide == true) { channels[0] = sideBuffer; } else { channels[0] = midBuffer; }
-    if (m_pParams->RTPC.filter3Gain != 0) { peakTwo.processBlock(channels[0], uBufferLength, false); }
-
-    // Low Shelf
-    if (m_pParams->RTPC.filter4MidSide == true) { channels[0] = sideBuffer; } else { channels[0] = midBuffer; }
-    if (m_pParams->RTPC.filter4Gain != 0) { lowShelf.process(uBufferLength, channels); }
+   
 
     deconstructMidSideBuffers(io_pBuffer, uBufferLength);
+}
+
+void MSEQFX::switchFilterType(Dsp::Filter** filterBand, int soundEngineBandType, int authoringBandType)
+{
+    switch (authoringBandType)
+    {
+    case HIGHSHELF:
+        *filterBand = new Dsp::FilterDesign <Dsp::Butterworth::Design::HighShelf <filterOrder>, 1>;
+        break;
+    case LOWPASS:
+        *filterBand = new Dsp::FilterDesign <Dsp::Butterworth::Design::LowPass <filterOrder>, 1>;
+        break;
+    case HIGHPASS:
+        *filterBand = new Dsp::FilterDesign <Dsp::Butterworth::Design::HighPass <filterOrder>, 1>;
+        break;
+    case LOWSHELF:
+        *filterBand = new Dsp::FilterDesign <Dsp::Butterworth::Design::LowShelf <filterOrder>, 1>;
+        break;
+    }
 }
 
 void MSEQFX::constructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength)
