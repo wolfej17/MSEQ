@@ -34,71 +34,125 @@ THE SOFTWARE.
 *******************************************************************************/
 
 #include "DspFilters/Common.h"
-#include "DspFilters/Butterworth.h"
+#include "DspFilters/ChebyshevI.h"
 
 namespace Dsp {
 
-namespace Butterworth {
+namespace ChebyshevI {
 
 AnalogLowPass::AnalogLowPass ()
   : m_numPoles (-1)
 {
-  setNormal (0, 1);
 }
 
-void AnalogLowPass::design (int numPoles)
+void AnalogLowPass::design (int numPoles,
+                            double rippleDb)
 {
-  if (m_numPoles != numPoles)
+  if (m_numPoles != numPoles ||
+      m_rippleDb != rippleDb)
   {
     m_numPoles = numPoles;
+    m_rippleDb = rippleDb;
 
     reset ();
+
+    const double eps = std::sqrt (1. / std::exp (-rippleDb * 0.1 * doubleLn10) - 1);
+    const double v0 = asinh (1 / eps) / numPoles;
+    const double sinh_v0 = -sinh (v0);
+    const double cosh_v0 = cosh (v0);
 
     const double n2 = 2 * numPoles;
     const int pairs = numPoles / 2;
     for (int i = 0; i < pairs; ++i)
     {
-      complex_t c = std::polar (1., doublePi_2 + (2 * i + 1) * doublePi / n2);
-      addPoleZeroConjugatePairs (c, infinity());
+      const int k = 2 * i + 1 - numPoles;
+      double a = sinh_v0 * cos (k * doublePi / n2);
+      double b = cosh_v0 * sin (k * doublePi / n2);
+
+      //addPoleZero (complex_t (a, b), infinity());
+      //addPoleZero (complex_t (a, -b), infinity());
+      addPoleZeroConjugatePairs (complex_t (a, b), infinity());
     }
 
     if (numPoles & 1)
-      add (-1, infinity());
+    {
+      add (complex_t (sinh_v0, 0), infinity());
+      setNormal (0, 1);
+    }
+    else
+    {
+      setNormal (0, pow (10, -rippleDb/20.));
+    }
   }
 }
 
 //------------------------------------------------------------------------------
 
+//
+// Chebyshev Type I low pass shelf prototype
+// From "High-Order Digital Parametric Equalizer Design"
+// Sophocles J. Orfanidis
+// http://www.ece.rutgers.edu/~orfanidi/ece521/hpeq.pdf
+//
+
 AnalogLowShelf::AnalogLowShelf ()
-  : m_numPoles (-1)
 {
   setNormal (doublePi, 1);
 }
 
-void AnalogLowShelf::design (int numPoles, double gainDb)
+void AnalogLowShelf::design (int numPoles,
+                             double gainDb,
+                             double rippleDb)
 {
   if (m_numPoles != numPoles ||
+      m_rippleDb != rippleDb ||
       m_gainDb != gainDb)
   {
     m_numPoles = numPoles;
+    m_rippleDb = rippleDb;
     m_gainDb = gainDb;
 
     reset ();
 
-    const double n2 = numPoles * 2;
-    const double g = pow (pow (10., gainDb/20), 1. / n2);
-    const double gp = -1. / g;
-    const double gz = -g;
+    gainDb = -gainDb;
 
+    if (rippleDb >= fabs(gainDb))
+      rippleDb = fabs (gainDb);
+    if (gainDb<0)
+      rippleDb = -rippleDb;
+
+    const double G  = std::pow (10., gainDb / 20.0 );
+    const double Gb = std::pow (10., (gainDb - rippleDb) / 20.0);
+    const double G0 = 1;
+    const double g0 = pow (G0 , 1. / numPoles);
+
+    double eps;
+    if (Gb != G0 )
+      eps = sqrt((G*G-Gb*Gb)/(Gb*Gb-G0*G0));
+    else
+      eps = G-1; // This is surely wrong
+
+    const double b = pow (G/eps+Gb*sqrt(1+1/(eps*eps)), 1./numPoles);
+    const double u = log (b / g0);
+    const double v = log (pow (1. / eps+sqrt(1+1/(eps*eps)),1./numPoles));
+    
+    const double sinh_u = sinh (u);
+    const double sinh_v = sinh (v);
+    const double cosh_u = cosh (u);
+    const double cosh_v = cosh (v);
+    const double n2 = 2 * numPoles;
     const int pairs = numPoles / 2;
     for (int i = 1; i <= pairs; ++i)
     {
-      const double theta = doublePi * (0.5 - (2 * i - 1) / n2);
-      addPoleZeroConjugatePairs (std::polar (gp, theta), std::polar (gz, theta));
+      const double a = doublePi * (2 * i - 1) / n2;
+      const double sn = sin (a);
+      const double cs = cos (a);
+      addPoleZeroConjugatePairs (complex_t (-sn * sinh_u, cs * cosh_u),
+                                       complex_t (-sn * sinh_v, cs * cosh_v));
     }
-    
+
     if (numPoles & 1)
-      add (gp, gz);
+      add (-sinh_u, -sinh_v);
   }
 }
 
@@ -106,9 +160,10 @@ void AnalogLowShelf::design (int numPoles, double gainDb)
 
 void LowPassBase::setup (int order,
                          double sampleRate,
-                         double cutoffFrequency)
+                         double cutoffFrequency,
+                         double rippleDb)
 {
-  m_analogProto.design (order);
+  m_analogProto.design (order, rippleDb);
 
   LowPassTransform (cutoffFrequency / sampleRate,
                     m_digitalProto,
@@ -119,9 +174,10 @@ void LowPassBase::setup (int order,
 
 void HighPassBase::setup (int order,
                           double sampleRate,
-                          double cutoffFrequency)
+                          double cutoffFrequency,
+                          double rippleDb)
 {
-  m_analogProto.design (order);
+  m_analogProto.design (order, rippleDb);
 
   HighPassTransform (cutoffFrequency / sampleRate,
                      m_digitalProto,
@@ -133,9 +189,10 @@ void HighPassBase::setup (int order,
 void BandPassBase::setup (int order,
                           double sampleRate,
                           double centerFrequency,
-                          double widthFrequency)
+                          double widthFrequency,
+                          double rippleDb)
 {
-  m_analogProto.design (order);
+  m_analogProto.design (order, rippleDb);
 
   BandPassTransform (centerFrequency / sampleRate,
                      widthFrequency / sampleRate,
@@ -148,9 +205,10 @@ void BandPassBase::setup (int order,
 void BandStopBase::setup (int order,
                           double sampleRate,
                           double centerFrequency,
-                          double widthFrequency)
+                          double widthFrequency,
+                          double rippleDb)
 {
-  m_analogProto.design (order);
+  m_analogProto.design (order, rippleDb);
 
   BandStopTransform (centerFrequency / sampleRate,
                      widthFrequency / sampleRate,
@@ -161,11 +219,12 @@ void BandStopBase::setup (int order,
 }
 
 void LowShelfBase::setup (int order,
-                         double sampleRate,
-                         double cutoffFrequency,
-                         double gainDb)
+                          double sampleRate,
+                          double cutoffFrequency,
+                          double gainDb,
+                          double rippleDb)
 {
-  m_analogProto.design (order, gainDb);
+  m_analogProto.design (order, gainDb, rippleDb);
 
   LowPassTransform (cutoffFrequency / sampleRate,
                     m_digitalProto,
@@ -177,9 +236,10 @@ void LowShelfBase::setup (int order,
 void HighShelfBase::setup (int order,
                            double sampleRate,
                            double cutoffFrequency,
-                           double gainDb)
+                           double gainDb,
+                           double rippleDb)
 {
-  m_analogProto.design (order, gainDb);
+  m_analogProto.design (order, gainDb, rippleDb);
 
   HighPassTransform (cutoffFrequency / sampleRate,
                      m_digitalProto,
@@ -192,16 +252,16 @@ void BandShelfBase::setup (int order,
                            double sampleRate,
                            double centerFrequency,
                            double widthFrequency,
-                           double gainDb)
+                           double gainDb,
+                           double rippleDb)
 {
-  m_analogProto.design (order, gainDb);
+  m_analogProto.design (order, gainDb, rippleDb);
 
   BandPassTransform (centerFrequency / sampleRate,
                      widthFrequency / sampleRate,
                      m_digitalProto,
                      m_analogProto);
 
-  // HACK!
   m_digitalProto.setNormal (((centerFrequency/sampleRate) < 0.25) ? doublePi : 0, 1);
 
   Cascade::setLayout (m_digitalProto);

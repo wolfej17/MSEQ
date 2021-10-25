@@ -36,9 +36,9 @@ THE SOFTWARE.
 #ifndef DSPFILTERS_BIQUAD_H
 #define DSPFILTERS_BIQUAD_H
 
-#include "ExtendedDspFilters/Common.h"
-#include "ExtendedDspFilters/MathSupplement.h"
-#include "ExtendedDspFilters/Types.h"
+#include "DspFilters/Common.h"
+#include "DspFilters/MathSupplement.h"
+#include "DspFilters/Types.h"
 
 namespace Dsp {
 

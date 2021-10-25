@@ -36,10 +36,10 @@ THE SOFTWARE.
 #ifndef DSPFILTERS_CUSTOM_H
 #define DSPFILTERS_CUSTOM_H
 
-#include "ExtendedDspFilters/Common.h"
-#include "ExtendedDspFilters/Biquad.h"
-#include "ExtendedDspFilters/Design.h"
-#include "ExtendedDspFilters/Filter.h"
+#include "DspFilters/Common.h"
+#include "DspFilters/Biquad.h"
+#include "DspFilters/Design.h"
+#include "DspFilters/Filter.h"
 
 namespace Dsp {
 

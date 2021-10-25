@@ -33,32 +33,25 @@ THE SOFTWARE.
 
 *******************************************************************************/
 
-#ifndef DSPFILTERS_ELLIPTIC_H
-#define DSPFILTERS_ELLIPTIC_H
+#ifndef DSPFILTERS_CHEBYSHEVII_H
+#define DSPFILTERS_CHEBYSHEVII_H
 
-#include "ExtendedDspFilters/Common.h"
-#include "ExtendedDspFilters/Cascade.h"
-#include "ExtendedDspFilters/Design.h"
-#include "ExtendedDspFilters/Filter.h"
-#include "ExtendedDspFilters/PoleFilter.h"
+#include "DspFilters/Common.h"
+#include "DspFilters/Cascade.h"
+#include "DspFilters/Design.h"
+#include "DspFilters/Filter.h"
+#include "DspFilters/PoleFilter.h"
 
 namespace Dsp {
 
 /*
- * Filters with Elliptic response characteristics
+ * Filters with Inverse Chebyshev response characteristics
  *
  */
 
-namespace Elliptic {
+namespace ChebyshevII {
 
-// Solves for Jacobi elliptics
-class Solver
-{
-public:
-  static double ellipticK (double k);
-};
-
-// Half-band analog prototype (s-plane)
+// Half-band analog prototypes (s-plane)
 
 class AnalogLowPass : public LayoutBase
 {
@@ -66,60 +59,28 @@ public:
   AnalogLowPass ();
 
   void design (const int numPoles,
-               double rippleDb,
-               double rolloff);
+               double stopBandDb);
 
 private:
-  void prodpoly    (int sn);
-  void calcfz2     (int i);
-  void calcfz      ();
-  void calcqz      ();
-  double findfact	 (int t);
-  double calcsn		 (double u);
-
-#if 0
-  template<int n>
-  struct CalcArray
-  {
-    double& operator[](size_t index)
-    {
-      assert( index<n );
-      return m_a[index];
-    }
-  private:
-    double m_a[n];
-  };
-#else
-#endif
-
-  double m_p0;
-  double m_q;
-  double m_K;
-  double m_Kprime;
-  double m_e;
-  int m_nin;
-  int m_m;
-  int m_n2;
-  int m_em;
-  double m_zeros[100];
-  double m_c1[100];
-  double m_b1[100];
-  double m_a1[100];
-  double m_d1[100];
-  double m_q1[100];
-  double m_z1[100];
-  double m_f1[100];
-  double m_s1[100];
-  double m_p [100];
-  double m_zw1[100];
-  double m_zf1[100];
-  double m_zq1[100];
-  double m_rootR[100];
-  double m_rootI[100];
-
   int m_numPoles;
-  double m_rippleDb;
-  double m_rolloff;
+  double m_stopBandDb;
+};
+
+//------------------------------------------------------------------------------
+
+class AnalogLowShelf : public LayoutBase
+{
+public:
+  AnalogLowShelf ();
+
+  void design (int numPoles,
+               double gainDb,
+               double stopBandDb);
+
+private:
+  int m_numPoles;
+  double m_stopBandDb;
+  double m_gainDb;
 };
 
 //------------------------------------------------------------------------------
@@ -131,8 +92,7 @@ struct LowPassBase : PoleFilterBase <AnalogLowPass>
   void setup (int order,
               double sampleRate,
               double cutoffFrequency,
-              double rippleDb,
-              double rolloff);
+              double stopBandDb);
 };
 
 struct HighPassBase : PoleFilterBase <AnalogLowPass>
@@ -140,8 +100,7 @@ struct HighPassBase : PoleFilterBase <AnalogLowPass>
   void setup (int order,
               double sampleRate,
               double cutoffFrequency,
-              double rippleDb,
-              double rolloff);
+              double stopBandDb);
 };
 
 struct BandPassBase : PoleFilterBase <AnalogLowPass>
@@ -150,8 +109,7 @@ struct BandPassBase : PoleFilterBase <AnalogLowPass>
               double sampleRate,
               double centerFrequency,
               double widthFrequency,
-              double rippleDb,
-              double rolloff);
+              double stopBandDb);
 };
 
 struct BandStopBase : PoleFilterBase <AnalogLowPass>
@@ -160,8 +118,35 @@ struct BandStopBase : PoleFilterBase <AnalogLowPass>
               double sampleRate,
               double centerFrequency,
               double widthFrequency,
-              double rippleDb,
-              double rolloff);
+              double stopBandDb);
+};
+
+struct LowShelfBase : PoleFilterBase <AnalogLowShelf>
+{
+  void setup (int order,
+              double sampleRate,
+              double cutoffFrequency,
+              double gainDb,
+              double stopBandDb);
+};
+
+struct HighShelfBase : PoleFilterBase <AnalogLowShelf>
+{
+  void setup (int order,
+              double sampleRate,
+              double cutoffFrequency,
+              double gainDb,
+              double stopBandDb);
+};
+
+struct BandShelfBase : PoleFilterBase <AnalogLowShelf>
+{
+  void setup (int order,
+              double sampleRate,
+              double centerFrequency,
+              double widthFrequency,
+              double gainDb,
+              double stopBandDb);
 };
 
 //------------------------------------------------------------------------------
@@ -190,6 +175,21 @@ struct BandStop : PoleFilter <BandStopBase, MaxOrder, MaxOrder*2>
 {
 };
 
+template <int MaxOrder>
+struct LowShelf : PoleFilter <LowShelfBase, MaxOrder>
+{
+};
+
+template <int MaxOrder>
+struct HighShelf : PoleFilter <HighShelfBase, MaxOrder>
+{
+};
+
+template <int MaxOrder>
+struct BandShelf : PoleFilter <BandShelfBase, MaxOrder, MaxOrder*2>
+{
+};
+
 //------------------------------------------------------------------------------
 
 //
@@ -199,6 +199,75 @@ struct BandStop : PoleFilter <BandStopBase, MaxOrder, MaxOrder*2>
 namespace Design {
 
 struct TypeIBase : DesignBase
+{
+  enum
+  {
+    NumParams = 4
+  };
+
+  static int getNumParams ()
+  {
+    return 4;
+  }
+
+  static const ParamInfo getParamInfo_2 ()
+  {
+    return ParamInfo::defaultCutoffFrequencyParam ();
+  }
+
+  static const ParamInfo getParamInfo_3 ()
+  {
+    return ParamInfo::defaultStopDbParam ();
+  }
+};
+
+template <class FilterClass>
+struct TypeI : TypeIBase, FilterClass
+{
+  void setParams (const Params& params)
+  {
+    FilterClass::setup (int(params[1]), params[0], params[2], params[3]);
+  }
+};
+
+struct TypeIIBase : DesignBase
+{
+  enum
+  {
+    NumParams = 5
+  };
+
+  static int getNumParams ()
+  {
+    return 5;
+  }
+
+  static const ParamInfo getParamInfo_2 ()
+  {
+    return ParamInfo::defaultCenterFrequencyParam ();
+  }
+
+  static const ParamInfo getParamInfo_3 ()
+  {
+    return ParamInfo::defaultBandwidthHzParam ();
+  }
+
+  static const ParamInfo getParamInfo_4 ()
+  {
+    return ParamInfo::defaultStopDbParam ();
+  }
+};
+
+template <class FilterClass>
+struct TypeII : TypeIIBase, FilterClass
+{
+  void setParams (const Params& params)
+  {
+    FilterClass::setup (int(params[1]), params[0], params[2], params[3], params[4]);
+  }
+};
+
+struct TypeIIIBase : DesignBase
 {
   enum
   {
@@ -217,17 +286,17 @@ struct TypeIBase : DesignBase
 
   static const ParamInfo getParamInfo_3 ()
   {
-    return ParamInfo::defaultRippleDbParam ();
+    return ParamInfo::defaultGainParam ();
   }
 
   static const ParamInfo getParamInfo_4 ()
   {
-    return ParamInfo::defaultRolloffParam ();
+    return ParamInfo::defaultStopDbParam ();
   }
 };
 
 template <class FilterClass>
-struct TypeI : TypeIBase, FilterClass
+struct TypeIII : TypeIIIBase, FilterClass
 {
   void setParams (const Params& params)
   {
@@ -235,7 +304,7 @@ struct TypeI : TypeIBase, FilterClass
   }
 };
 
-struct TypeIIBase : DesignBase
+struct TypeIVBase : DesignBase
 {
   enum
   {
@@ -259,17 +328,17 @@ struct TypeIIBase : DesignBase
 
   static const ParamInfo getParamInfo_4 ()
   {
-    return ParamInfo::defaultRippleDbParam ();
+    return ParamInfo::defaultGainParam ();
   }
 
   static const ParamInfo getParamInfo_5 ()
   {
-    return ParamInfo::defaultRolloffParam ();
+    return ParamInfo::defaultStopDbParam ();
   }
 };
 
 template <class FilterClass>
-struct TypeII : TypeIIBase, FilterClass
+struct TypeIV : TypeIVBase, FilterClass
 {
   void setParams (const Params& params)
   {
@@ -282,25 +351,43 @@ struct TypeII : TypeIIBase, FilterClass
 struct LowPassDescription
 {
   static Kind getKind () { return kindLowPass; }
-  static const char* getName() { return "Elliptic Low Pass"; }
+  static const char* getName() { return "Chebyshev II Low Pass"; }
 };
 
 struct HighPassDescription
 {
   static Kind getKind () { return kindHighPass; }
-  static const char* getName() { return "Elliptic High Pass"; }
+  static const char* getName() { return "Chebyshev II High Pass"; }
 };
 
 struct BandPassDescription
 {
   static Kind getKind () { return kindHighPass; }
-  static const char* getName() { return "Elliptic Band Pass"; }
+  static const char* getName() { return "Chebyshev II Band Pass"; }
 };
 
 struct BandStopDescription
 {
   static Kind getKind () { return kindHighPass; }
-  static const char* getName() { return "Elliptic Band Stop"; }
+  static const char* getName() { return "Chebyshev II Band Stop"; }
+};
+
+struct LowShelfDescription
+{
+  static Kind getKind () { return kindLowShelf; }
+  static const char* getName() { return "Chebyshev II Low Shelf"; }
+};
+
+struct HighShelfDescription
+{
+  static Kind getKind () { return kindHighShelf; }
+  static const char* getName() { return "Chebyshev II High Shelf"; }
+};
+
+struct BandShelfDescription
+{
+  static Kind getKind () { return kindBandShelf; }
+  static const char* getName() { return "Chebyshev II Band Shelf"; }
 };
 
 // This glues on the Order parameter
@@ -319,35 +406,55 @@ struct OrderBase : TypeClass <FilterClass <MaxOrder> >
 
   }
 };
+
 //------------------------------------------------------------------------------
 
 //
-// Design filters
+// Design Filters
 //
 
 template <int MaxOrder>
-struct LowPass : OrderBase <MaxOrder, TypeI, Elliptic::LowPass>,
+struct LowPass : OrderBase <MaxOrder, TypeI, ChebyshevII::LowPass>,
                  LowPassDescription
 {
 };
 
 template <int MaxOrder>
-struct HighPass : OrderBase <MaxOrder, TypeI, Elliptic::HighPass>,
+struct HighPass : OrderBase <MaxOrder, TypeI, ChebyshevII::HighPass>,
                   HighPassDescription
 {
 };
 
 template <int MaxOrder>
-struct BandPass : OrderBase <MaxOrder, TypeII, Elliptic::BandPass>,
+struct BandPass : OrderBase <MaxOrder, TypeII, ChebyshevII::BandPass>,
                   BandPassDescription
 {
 };
 
 template <int MaxOrder>
-struct BandStop : OrderBase <MaxOrder, TypeII, Elliptic::BandStop>,
+struct BandStop : OrderBase <MaxOrder, TypeII, ChebyshevII::BandStop>,
                   BandStopDescription
 {
 };
+
+template <int MaxOrder>
+struct LowShelf : OrderBase <MaxOrder, TypeIII, ChebyshevII::LowShelf>,
+                  LowShelfDescription
+{
+};
+
+template <int MaxOrder>
+struct HighShelf : OrderBase <MaxOrder, TypeIII, ChebyshevII::HighShelf>,
+                   HighShelfDescription
+{
+};
+
+template <int MaxOrder>
+struct BandShelf : OrderBase <MaxOrder, TypeIV, ChebyshevII::BandShelf>,
+                   BandShelfDescription
+{
+};
+
 
 }
 

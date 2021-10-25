@@ -35,9 +35,11 @@ THE SOFTWARE.
 
 #ifndef DSPFILTERS_SMOOTHEDFILTER_H
 #define DSPFILTERS_SMOOTHEDFILTER_H
+#define NOMINMAX
 
-#include "ExtendedDspFilters/Common.h"
-#include "ExtendedDspFilters/Filter.h"
+#include "DspFilters/Common.h"
+#include "DspFilters/Filter.h"
+#include <limits>
 
 namespace Dsp {
 
@@ -73,7 +75,7 @@ public:
     assert (m_remainingSamples >= 0);
 
     // first handle any transition samples
-    int remainingSamples = std::min (m_remainingSamples, numSamples);
+    int remainingSamples = (std::min)(m_remainingSamples, numSamples);
 
     if (remainingSamples > 0)
     {

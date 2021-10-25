@@ -33,8 +33,8 @@ THE SOFTWARE.
 
 *******************************************************************************/
 
-#include "ExtendedDspFilters/Common.h"
-#include "ExtendedDspFilters/State.h"
+#include "DspFilters/Common.h"
+#include "DspFilters/State.h"
 
 namespace Dsp {
 
