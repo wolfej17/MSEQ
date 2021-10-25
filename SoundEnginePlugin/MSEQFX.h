@@ -30,7 +30,7 @@ the specific language governing permissions and limitations under the License.
 /// <summary>
 ///  TODO: Configurable dB/8ve order/slope
 /// </summary>
-const int filterOrder = 20;
+const int filterOrder = 2;
 
 enum FilterType : int
 {
@@ -93,16 +93,18 @@ private:
     void deconstructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength);
 
     // Mid/Side Buffers
-    float* midBuffer;
-    float* sideBuffer;
+    float* midBuffer = nullptr;
+    float* sideBuffer = nullptr;
 
     // values (in place of callback) to determine if new type of filter is selected. 
     /// TODO: Implement a callback!
-    AkReal32 bandOneType;
-    AkReal32 bandFourType;
+    AkReal32 bandOneType = 1000.0;
+    AkReal32 bandFourType = 1000.0;
 
     void switchFilterType(Dsp::Filter** filterBand, Dsp::Filter** filterBandParams, Dsp::Filter** m_Filter, AkReal32* soundEngineBandType, AkReal32* authoringBandType);
     void setFilterParameters(Dsp::Filter* filterBand, Dsp::Filter* filterBandParams, float sampRate, float freq, float gain, float q);
+
+    void resetCheck(Dsp::Filter* filterBand);
 
     template <class DesignType, class StateType>
     void createFilterDesign(Dsp::Filter** pFilter, Dsp::Filter** pAudioFilter);

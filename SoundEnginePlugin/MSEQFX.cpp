@@ -42,6 +42,13 @@ MSEQFX::MSEQFX()
     , m_pAllocator(nullptr)
     , m_pContext(nullptr)
 {
+    for (int i = 0; i < 2; i++)
+    {
+        outerBands[i] = nullptr;
+        outerBandsParams[i] = nullptr;
+        m_Filters[i] = nullptr;
+        innerBands[i] = nullptr;
+    }
 }
 
 MSEQFX::~MSEQFX()
@@ -83,34 +90,29 @@ AKRESULT MSEQFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginC
 
 AKRESULT MSEQFX::Term(AK::IAkPluginMemAlloc* in_pAllocator)
 {
-    for (int i = 0; i < 4; i++)
-    {
-        if (i < 2)
-        {
-            if (outerBands[i] != nullptr)
-            {
-                delete outerBands[i];
-                outerBands[i] = nullptr;
-            }
-        }
-        else
-        {
-            if (innerBands[i - 2] != nullptr)
-            {
-                delete innerBands[i - 2];
-                innerBands[i - 2] = nullptr;
-            }
-        }
-    }
-
+    
     AK_PLUGIN_DELETE(in_pAllocator, this);
     return AK_Success;
 }
 
 AKRESULT MSEQFX::Reset()
 {
-    
+    for (int i = 0; i < 2; i++)
+    {
+        resetCheck(outerBands[i]);
+        resetCheck(outerBandsParams[i]);
+        resetCheck(m_Filters[i]);
+        innerBands[i]->reset();
+    }
     return AK_Success;
+}
+
+void MSEQFX::resetCheck(Dsp::Filter* filterBand)
+{
+    if (filterBand != nullptr)
+    {
+        filterBand->reset();
+    }
 }
 
 AKRESULT MSEQFX::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
@@ -136,8 +138,9 @@ void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
         {
             if (outerBands[i] != nullptr)
             {
-                /// TODO: Each Dsp::Filter can be modified to hold Authoring parameter data. Do not need inner loops.
-                /// TODO: Interpolate between parameter changes.
+                /// TODO: Handle parameter smoothing.
+                /// TODO: Each Dsp::Filter can be modified to hold Authoring parameter data.
+                /// TODO: Use AK Type Alias' and document.
 
                 if (i % 2 == 0)
                 {
@@ -158,10 +161,11 @@ void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
                     {
                         if (m_pParams->RTPC.filter4MidSide == true) { channels[0] = sideBuffer; }
                         else { channels[0] = midBuffer; }
-
+                        
                         switchFilterType(&outerBands[i], &outerBandsParams[i], &m_Filters[i], &bandFourType, &m_pParams->RTPC.filter4Type);
                         setFilterParameters(outerBands[i], m_Filters[i], sampleRate, m_pParams->RTPC.filter4Freq, m_pParams->RTPC.filter4Gain, m_pParams->RTPC.filter4Q);
                         outerBands[i]->process(uBufferLength, channels);
+                        
                     }
                 }
             }
@@ -209,23 +213,25 @@ void MSEQFX::createFilterState(Dsp::Filter** pFilter, Dsp::Filter** pAudioFilter
     createFilterDesign <DesignType, Dsp::DirectFormII>(pFilter, pAudioFilter);
 }
 
-void MSEQFX::setFilterParameters(Dsp::Filter * filterBand, Dsp::Filter* filterBandParams, float sampRate, float freq, float gain, float q)
+void MSEQFX::setFilterParameters(Dsp::Filter* filterBand, Dsp::Filter* filterBandParams, float sampRate, float freq, float gain, float q)
 {
-    filterBandParams->setParamById(Dsp::idSampleRate, sampleRate);
-    filterBandParams->setParamById(Dsp::idFrequency, freq);
-    filterBandParams->setParamById(Dsp::idGain, gain);
-    filterBandParams->setParamById(Dsp::idQ, q);
-    filterBandParams->setParamById(Dsp::idOrder, filterOrder);
+    if (filterBandParams != nullptr)
+    {
+        filterBandParams->setParamById(Dsp::idSampleRate, sampleRate);
+        filterBandParams->setParamById(Dsp::idFrequency, freq);
+        filterBandParams->setParamById(Dsp::idGain, gain);
+        filterBandParams->setParamById(Dsp::idQ, q);
+        filterBandParams->setParamById(Dsp::idOrder, filterOrder);
 
-    filterBand->copyParamsFrom(filterBandParams);
+        filterBand->copyParamsFrom(filterBandParams);
+    }
 }
 
 void MSEQFX::switchFilterType(Dsp::Filter** filterBand, Dsp::Filter** filterBandParams, Dsp::Filter** m_Filter, AkReal32 *soundEngineBandType, AkReal32 *authoringBandType)
 {
     if (*soundEngineBandType != *authoringBandType)
     {
-        delete* filterBand;
-        delete* filterBandParams;
+
         int authoringBand = *authoringBandType;
         switch (authoringBand)
         {
@@ -246,7 +252,7 @@ void MSEQFX::switchFilterType(Dsp::Filter** filterBand, Dsp::Filter** filterBand
             break;
         }
 
-        // Copy filter parameters intelligently, rec. by Vinnie
+        // Reset between changing filter types?
         Dsp::Filter* mFilt = *m_Filter;
         Dsp::Filter* filtParams = *filterBandParams;
         Dsp::Filter* audioFilt = *filterBand;
@@ -255,7 +261,8 @@ void MSEQFX::switchFilterType(Dsp::Filter** filterBand, Dsp::Filter** filterBand
         {
             filtParams->copyParamsFrom(mFilt);
         }
-        mFilt = *m_Filter = *filterBandParams;
+        *m_Filter = *filterBandParams;
+        mFilt = *m_Filter;
         audioFilt ->setParams(mFilt->getParams());
 
         *soundEngineBandType = *authoringBandType;
@@ -272,8 +279,8 @@ void MSEQFX::constructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength)
 
     for (int i = 0; i < bufferLength; ++i)
     {
-        float midSample = (channel1[i] + channel2[i]) / float(sqrt(2));  // Cast to avoid arithmetic overflow
-        float sideSample = (channel1[i] - channel2[i]) / float(sqrt(2)); // Cast to avoid arithmetic overflow
+        float midSample = (channel1[i] + channel2[i]) / float(sqrt(2));
+        float sideSample = (channel1[i] - channel2[i]) / float(sqrt(2));
 
         midBuffer[i] = midSample;
         sideBuffer[i] = sideSample;
@@ -287,15 +294,23 @@ void MSEQFX::deconstructMidSideBuffers(AkAudioBuffer* inBuf, int bufferLength)
 
     for (int i = 0; i < bufferLength; ++i)
     {
-        float chanOneSample = (midBuffer[i] + sideBuffer[i]) / float(sqrt(2)); // Cast to avoid arithmetic overflow
-        float chanTwoSample = (midBuffer[i] - sideBuffer[i]) / float(sqrt(2)); // Cast to avoid arithmetic overflow
+        float chanOneSample = (midBuffer[i] + sideBuffer[i]) / float(sqrt(2));
+        float chanTwoSample = (midBuffer[i] - sideBuffer[i]) / float(sqrt(2));
 
         channel1[i] = chanOneSample;
         channel2[i] = chanTwoSample;
     }
 
-    delete[] midBuffer;
-    delete[] sideBuffer;
+    if (midBuffer != nullptr)
+    { 
+        delete midBuffer;
+        midBuffer = nullptr;
+    }
+    if (sideBuffer != nullptr)
+    {
+        delete sideBuffer;
+        sideBuffer = nullptr;
+    }
 }
 
 double MSEQFX::computeUpperCutoffFrequency(double q, double f0)
