@@ -6,6 +6,6 @@ Copy the contents of the MSEQBuilds to your Wwise plugin source location (.dll a
 # License: 
 MIT https://opensource.org/licenses/mit-license.php
 # Picture: 
-
+![alt text](https://github.com/wolfej17/MSEQ/Doc/blob/main/MSEQPic.png?raw=true)
 # Documentation: 
 [embed]https://drive.google.com/drive/u/0/folders/1AQJBlgdWiz8i2vXalW_d64RqPmJ2j-3W[/embed]
