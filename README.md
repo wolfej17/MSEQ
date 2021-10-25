@@ -4,7 +4,7 @@ Uses some of Vinnie Falco's DSP Filters (https://github.com/vinniefalco/DSPFilte
 # Intall: 
 See latest release or copy contents from MSEQBuilds to your Wwise plugin source location (.dll and .xml) (https://www.audiokinetic.com/library/edge/?source=SDK&id=source_control_install.html).
 # License: 
-MIT https://opensource.org/licenses/mit-license.php# Picture: 
+MIT https://opensource.org/licenses/mit-license.php#
 # Video:
 <video src= 'https://youtu.be/H2PoAAbgXao' width=180/>
 # Picture: 
