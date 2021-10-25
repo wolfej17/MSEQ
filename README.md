@@ -6,8 +6,8 @@ See latest release or copy contents from MSEQBuilds to your Wwise plugin source 
 # License: 
 MIT https://opensource.org/licenses/mit-license.php#
 # Video:
-<video src= 'https://youtu.be/H2PoAAbgXao' width=180/>
+![MSEQVideo](https://github.com/wolfej17/MSEQ/blob/main/Doc/MSEQPic.png?raw=true)
 # Picture: 
-![MSEQPic](https://github.com/wolfej17/MSEQ/blob/main/Doc/MSEQPic.png?raw=true)
+![MSEQPic](https://github.com/wolfej17/MSEQ/blob/main/Doc/MSEQVideoDemo.mov?raw=true)
 # Documentation: 
 https://github.com/wolfej17/MSEQ/blob/main/Doc/MSEQWwiseDesign.pdf
