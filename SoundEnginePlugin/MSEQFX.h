@@ -22,11 +22,15 @@ the specific language governing permissions and limitations under the License.
 #define MSEQFX_H
 
 #include "MSEQFXParams.h"
-#include "ExtendedDspFilters/Dsp.h"
+#include "DspFilters/Dsp.h"
 #include "Biquad/ParametricEQ.h"
-#include "ExtendedDspFilters/Filter.h"
+#include "DspFilters/Filter.h"
 
-const int filterOrder = 50;
+
+/// <summary>
+///  TODO: Configurable dB/8ve order/slope
+/// </summary>
+const int filterOrder = 20;
 
 enum FilterType : int
 {
@@ -71,14 +75,15 @@ private:
     AK::IAkPluginMemAlloc* m_pAllocator;
     AK::IAkEffectPluginContext* m_pContext;
 
-    Dsp::SimpleFilter <Dsp::Butterworth::HighShelf <filterOrder>, 1> highShelf;
-    Dsp::SimpleFilter <Dsp::Butterworth::HighShelf <filterOrder>, 1> lowPass;
-    Parametric bandTwo;
-    Parametric bandThree;
-    Dsp::Filter* bandFour = nullptr;
+    Dsp::Filter* outerBands[2];
+    Dsp::Filter* outerBandsParams[2];
 
-    double sampleRate;
-    float linGain = 0;
+    Dsp::Filter* m_Filters[2];
+
+    Parametric* innerBands[2];
+
+    double sampleRate = 0.0;
+    float linGain = 0.0f;
     // Corner frequency cutoff calculations. For future parametric butterworth designs with upper and lower band edge frequencies.
     double computeUpperCutoffFrequency(double q, double f0);
     double computeLowerCutoffFrequency(double q, double f0);
@@ -93,10 +98,17 @@ private:
 
     // values (in place of callback) to determine if new type of filter is selected. 
     /// TODO: Implement a callback!
-    AkReal32 bandOneType = HIGHSHELF;
-    AkReal32 bandFourType = LOWSHELF;
+    AkReal32 bandOneType;
+    AkReal32 bandFourType;
 
-    void switchFilterType(Dsp::Filter** filterBand, int soundEngineBandType, int authoringBandType);
+    void switchFilterType(Dsp::Filter** filterBand, Dsp::Filter** filterBandParams, Dsp::Filter** m_Filter, AkReal32* soundEngineBandType, AkReal32* authoringBandType);
+    void setFilterParameters(Dsp::Filter* filterBand, Dsp::Filter* filterBandParams, float sampRate, float freq, float gain, float q);
+
+    template <class DesignType, class StateType>
+    void createFilterDesign(Dsp::Filter** pFilter, Dsp::Filter** pAudioFilter);
+
+    template <class DesignType>
+    void createFilterState(Dsp::Filter** pFilter, Dsp::Filter** pAudioFilter);
 };
 
 #endif // MSEQFX_H

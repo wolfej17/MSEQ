@@ -33,9 +33,9 @@ THE SOFTWARE.
 
 *******************************************************************************/
 
-#include "ExtendedDspFilters/Common.h"
-#include "ExtendedDspFilters/MathSupplement.h"
-#include "ExtendedDspFilters/Biquad.h"
+#include "DspFilters/Common.h"
+#include "DspFilters/MathSupplement.h"
+#include "DspFilters/Biquad.h"
 
 namespace Dsp {
 

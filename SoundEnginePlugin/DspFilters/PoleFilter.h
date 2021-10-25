@@ -36,9 +36,9 @@ THE SOFTWARE.
 #ifndef DSPFILTERS_POLEFILTER_H
 #define DSPFILTERS_POLEFILTER_H
 
-#include "ExtendedDspFilters/Common.h"
-#include "ExtendedDspFilters/MathSupplement.h"
-#include "ExtendedDspFilters/Cascade.h"
+#include "DspFilters/Common.h"
+#include "DspFilters/MathSupplement.h"
+#include "DspFilters/Cascade.h"
 
 namespace Dsp {
 

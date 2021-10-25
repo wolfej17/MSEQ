@@ -20,8 +20,8 @@ the specific language governing permissions and limitations under the License.
 
 #include "MSEQFX.h"
 #include "../MSEQConfig.h"
-#include "ExtendedDspFilters/Common.h"
-#include "ExtendedDspFilters//Filter.h"
+#include "DspFilters/Common.h"
+#include "DspFilters/Filter.h"
 
 #include <AK/AkWwiseSDKVersion.h>
 
@@ -56,25 +56,51 @@ AKRESULT MSEQFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginC
 
     sampleRate = in_rFormat.uSampleRate;
 
-    bandOne = new Dsp::FilterDesign <Dsp::Butterworth::Design::LowPass <filterOrder>, 1>;
-    bandTwo = Parametric();
-    bandThree = Parametric();
-    bandFour = new Dsp::FilterDesign <Dsp::Butterworth::Design::LowShelf <filterOrder>, 1>;
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (i < 2)
+        {
+            if (i % 2 == 0)
+            {
+                switchFilterType(&outerBands[i], &outerBandsParams[i], &m_Filters[i], &bandOneType, &m_pParams->RTPC.filter1Type);
+                setFilterParameters(outerBands[i], m_Filters[i], sampleRate, m_pParams->RTPC.filter1Freq, m_pParams->RTPC.filter1Gain, m_pParams->RTPC.filter1Q);
+            }
+            else
+            {
+                switchFilterType(&outerBands[i], &outerBandsParams[i], &m_Filters[i], &bandFourType, &m_pParams->RTPC.filter4Type);
+                setFilterParameters(outerBands[i], m_Filters[i], sampleRate, m_pParams->RTPC.filter4Freq, m_pParams->RTPC.filter4Gain, m_pParams->RTPC.filter4Q);
+            }
+        }
+        else 
+        {
+            innerBands[i - 2] = new Parametric();
+        }
+    }
 
     return AK_Success;
 }
 
 AKRESULT MSEQFX::Term(AK::IAkPluginMemAlloc* in_pAllocator)
 {
-    if (bandOne != nullptr)
+    for (int i = 0; i < 4; i++)
     {
-        delete bandOne;
-        bandOne = nullptr;
-    }
-    if (bandFour != nullptr)
-    {
-        delete bandFour;
-        bandFour = nullptr;
+        if (i < 2)
+        {
+            if (outerBands[i] != nullptr)
+            {
+                delete outerBands[i];
+                outerBands[i] = nullptr;
+            }
+        }
+        else
+        {
+            if (innerBands[i - 2] != nullptr)
+            {
+                delete innerBands[i - 2];
+                innerBands[i - 2] = nullptr;
+            }
+        }
     }
 
     AK_PLUGIN_DELETE(in_pAllocator, this);
@@ -83,10 +109,7 @@ AKRESULT MSEQFX::Term(AK::IAkPluginMemAlloc* in_pAllocator)
 
 AKRESULT MSEQFX::Reset()
 {
-    bandOne->reset();
-    bandTwo.reset();
-    bandThree.reset();
-    bandFour->reset();
+    
     return AK_Success;
 }
 
@@ -103,40 +126,139 @@ void MSEQFX::Execute(AkAudioBuffer* io_pBuffer)
 {
     const int uNumChannels = io_pBuffer->NumChannels();
     const int uBufferLength = io_pBuffer->uValidFrames;
-    
-    //switchFilterType(&bandOne, bandOneType, int(m_pParams->RTPC.filter1Type));
-    // Setup filter for highshelf and low pass, separately.
-    bandOne->setParams(params);
 
     float* channels[1];
-
     constructMidSideBuffers(io_pBuffer, uBufferLength);
 
-    // High Shelf
-    if (m_pParams->RTPC.filter1MidSide == true) { channels[0] = sideBuffer; } else { channels[0] = midBuffer; }
-    if (m_pParams->RTPC.filter1Gain != 0) { bandOne->process(uBufferLength, channels); }
+    for (int i = 0; i < 4; i++)
+    {
+        if (i < 2)
+        {
+            if (outerBands[i] != nullptr)
+            {
+                /// TODO: Each Dsp::Filter can be modified to hold Authoring parameter data. Do not need inner loops.
+                /// TODO: Interpolate between parameter changes.
 
-   
+                if (i % 2 == 0)
+                {
+                    if (m_pParams->RTPC.filter1Enable)
+                    {
+                        if (m_pParams->RTPC.filter1MidSide == true) { channels[0] = sideBuffer; }
+                        else { channels[0] = midBuffer; }
 
+                        switchFilterType(&outerBands[i], &outerBandsParams[i], &m_Filters[i], &bandOneType, &m_pParams->RTPC.filter1Type);
+                        setFilterParameters(outerBands[i], m_Filters[i], sampleRate, m_pParams->RTPC.filter1Freq, m_pParams->RTPC.filter1Gain, m_pParams->RTPC.filter1Q);
+                        outerBands[i]->process(uBufferLength, channels);
+                    }
+
+                }
+                else
+                {
+                    if (m_pParams->RTPC.filter4Enable)
+                    {
+                        if (m_pParams->RTPC.filter4MidSide == true) { channels[0] = sideBuffer; }
+                        else { channels[0] = midBuffer; }
+
+                        switchFilterType(&outerBands[i], &outerBandsParams[i], &m_Filters[i], &bandFourType, &m_pParams->RTPC.filter4Type);
+                        setFilterParameters(outerBands[i], m_Filters[i], sampleRate, m_pParams->RTPC.filter4Freq, m_pParams->RTPC.filter4Gain, m_pParams->RTPC.filter4Q);
+                        outerBands[i]->process(uBufferLength, channels);
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (innerBands[i - 2] != nullptr)
+            {
+                if (i % 2 == 0)
+                {
+                    if (m_pParams->RTPC.filter2Enable)
+                    {
+                        if (m_pParams->RTPC.filter2MidSide == true) { channels[0] = sideBuffer; }
+                        else { channels[0] = midBuffer; }
+                        innerBands[i - 2]->calcCoeffs(m_pParams->RTPC.filter2Gain, m_pParams->RTPC.filter2Freq, m_pParams->RTPC.filter2Q, sampleRate);
+                        innerBands[i - 2]->processBlock(channels[0], uBufferLength, false);
+                    }
+                }
+                else
+                {
+                    if (m_pParams->RTPC.filter3Enable)
+                    {
+                        if (m_pParams->RTPC.filter3MidSide == true) { channels[0] = sideBuffer; }
+                        else { channels[0] = midBuffer; }
+                        innerBands[i - 2]->calcCoeffs(m_pParams->RTPC.filter3Gain, m_pParams->RTPC.filter3Freq, m_pParams->RTPC.filter3Q, sampleRate);
+                        innerBands[i - 2]->processBlock(channels[0], uBufferLength, false);
+                    }
+                }
+            }
+        }
+    }
     deconstructMidSideBuffers(io_pBuffer, uBufferLength);
 }
 
-void MSEQFX::switchFilterType(Dsp::Filter** filterBand, int soundEngineBandType, int authoringBandType)
+template <class DesignType, class StateType>
+void MSEQFX::createFilterDesign(Dsp::Filter** pFilter, Dsp::Filter** pAudioFilter)
 {
-    switch (authoringBandType)
+    *pAudioFilter = new Dsp::SmoothedFilterDesign <DesignType, 1, StateType>(1024);
+}
+
+template <class DesignType>
+void MSEQFX::createFilterState(Dsp::Filter** pFilter, Dsp::Filter** pAudioFilter)
+{
+    *pFilter = new Dsp::FilterDesign <DesignType, 1>;
+    createFilterDesign <DesignType, Dsp::DirectFormII>(pFilter, pAudioFilter);
+}
+
+void MSEQFX::setFilterParameters(Dsp::Filter * filterBand, Dsp::Filter* filterBandParams, float sampRate, float freq, float gain, float q)
+{
+    filterBandParams->setParamById(Dsp::idSampleRate, sampleRate);
+    filterBandParams->setParamById(Dsp::idFrequency, freq);
+    filterBandParams->setParamById(Dsp::idGain, gain);
+    filterBandParams->setParamById(Dsp::idQ, q);
+    filterBandParams->setParamById(Dsp::idOrder, filterOrder);
+
+    filterBand->copyParamsFrom(filterBandParams);
+}
+
+void MSEQFX::switchFilterType(Dsp::Filter** filterBand, Dsp::Filter** filterBandParams, Dsp::Filter** m_Filter, AkReal32 *soundEngineBandType, AkReal32 *authoringBandType)
+{
+    if (*soundEngineBandType != *authoringBandType)
     {
-    case HIGHSHELF:
-        *filterBand = new Dsp::FilterDesign <Dsp::Butterworth::Design::HighShelf <filterOrder>, 1>;
-        break;
-    case LOWPASS:
-        *filterBand = new Dsp::FilterDesign <Dsp::Butterworth::Design::LowPass <filterOrder>, 1>;
-        break;
-    case HIGHPASS:
-        *filterBand = new Dsp::FilterDesign <Dsp::Butterworth::Design::HighPass <filterOrder>, 1>;
-        break;
-    case LOWSHELF:
-        *filterBand = new Dsp::FilterDesign <Dsp::Butterworth::Design::LowShelf <filterOrder>, 1>;
-        break;
+        delete* filterBand;
+        delete* filterBandParams;
+        int authoringBand = *authoringBandType;
+        switch (authoringBand)
+        {
+        case HIGHSHELF:
+            createFilterState <Dsp::Butterworth::Design::HighShelf <filterOrder> >(filterBand, filterBandParams);
+            break;
+        case LOWPASS:
+            createFilterState <Dsp::Butterworth::Design::LowPass <filterOrder> >(filterBand, filterBandParams);
+            break;
+        case HIGHPASS:
+            createFilterState <Dsp::Butterworth::Design::HighPass <filterOrder> >(filterBand, filterBandParams);
+            break;
+        case LOWSHELF:
+            createFilterState <Dsp::Butterworth::Design::LowShelf <filterOrder> >(filterBand, filterBandParams);
+            break;
+        default:
+            createFilterState <Dsp::Butterworth::Design::HighShelf <filterOrder> >(filterBand, filterBandParams);
+            break;
+        }
+
+        // Copy filter parameters intelligently, rec. by Vinnie
+        Dsp::Filter* mFilt = *m_Filter;
+        Dsp::Filter* filtParams = *filterBandParams;
+        Dsp::Filter* audioFilt = *filterBand;
+
+        if (mFilt != nullptr)
+        {
+            filtParams->copyParamsFrom(mFilt);
+        }
+        mFilt = *m_Filter = *filterBandParams;
+        audioFilt ->setParams(mFilt->getParams());
+
+        *soundEngineBandType = *authoringBandType;
     }
 }
 
