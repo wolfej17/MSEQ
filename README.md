@@ -8,4 +8,4 @@ MIT https://opensource.org/licenses/mit-license.php
 # Picture: 
 ![MSEQPic](https://github.com/wolfej17/MSEQ/blob/main/Doc/MSEQPic.png?raw=true)
 # Documentation: 
-[embed]https://github.com/wolfej17/MSEQ/blob/main/Doc/MSEQWwiseDesign.pdf[/embed]
+https://github.com/wolfej17/MSEQ/blob/main/Doc/MSEQWwiseDesign.pdf
